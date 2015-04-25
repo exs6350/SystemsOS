@@ -1,0 +1,4 @@
+#!/bin/sh
+XINU_PATH="../../Xinu"
+cp -v src/*.c $XINU_PATH/system
+cp -v src/*.h $XINU_PATH/include
