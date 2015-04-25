@@ -50,6 +50,8 @@ void user_s( void ); void user_t( void ); void user_u( void );
 void user_v( void ); void user_w( void ); void user_x( void );
 void user_y( void ); void user_z( void );
 
+void helloCommand( void ); void lsCommand( void );
+
 /*
 ** Users A, B, and C are identical, except for the character they
 ** print out via write( FD_SIO,).  Each prints its ID, then loops 30
@@ -571,11 +573,11 @@ void user_z( void ) {
 */
 
 void init( void ) {
-	//int16_t pid;
+//	int16_t pid;
 
 	write( FD_CONSOLE, "Init started\n", 0 );
 
-	write( FD_SIO, "$", 1 );
+//	write( FD_SIO, "$", 1 );
 
 #ifdef SPAWN_A
 	pid = spawnp( user_a, PRIO_USER_STD );
@@ -737,7 +739,7 @@ void init( void ) {
 	}
 #endif
 
-	write( FD_SIO, "!", 1 );
+//	write( FD_SIO, "!", 1 );
 
 	exit();
 }
@@ -828,18 +830,36 @@ int strcmp(char* str1, char* str2) {
 void shell( void ) {
 
 	char readBuffer[5];
-	char commandBuffer[100];
-	int bufIndex = -1;
+	char resultBuffer[100];
+	char commandBuffer[20];
+	char paramBuffer[20];
+	char paramBuffer2[20];
+	int resBufIndex = -1;
 	int gotCommand = 0; // 0 for no, 1 for yes
+	int comBufIndex = 0;
+	int pBufIndex = 0;
+	int pBufIndex2 = 0;
+	int usedSpace = 1; // Set to 1 because you can't have a space at the beginning
+
+	char *helloCommandString = "hello";
+	char *lsCommandString = "ls";
+	
+	
 
 	while( 1 ) {
-		write( FD_SIO, "$ ", 2 );
+		write( FD_SIO, "$ ", 0 );
 		
 		while( !gotCommand ) {
 			int size = read( FD_SIO, readBuffer, 5 );
 			if( size != 0 ){
-				for( int i = 0; i < size; ++i ) {
-					bufIndex++;
+				for( int i = 0; i < size; ++i ) { // I'm not sure if we need this loop
+					// Only allow 1 space
+					if( readBuffer[i] == ' ' ) {
+						if( usedSpace ) continue;
+						else usedSpace = 1;
+					} else usedSpace = 0;
+
+					resBufIndex++;
 					write( FD_CONSOLE, &readBuffer[i], 1 ); // Echo the char
 					write( FD_SIO, &readBuffer[i], 1 );
 					if(readBuffer[i] == '\n' || readBuffer[i] == '\r') {
@@ -847,42 +867,155 @@ void shell( void ) {
 // This might need to be changed to handle hitting enter and typing immediatly while waiting for us to handle the previous command.
 						break;
 					}
-					commandBuffer[bufIndex] = readBuffer[i];
+					resultBuffer[resBufIndex] = readBuffer[i];
 					
 				}
 			} else { // Sleep if we didn't get any characters, Though this will give the idle process time to run, which is kind of bad becuase it puts characters on the screen, though we can change that.
 				//sleep( SECONDS_TO_MS(.5) );
 			}
 		}
-// Loop through characters, isolate the command and parameters by spaces
-		write( FD_CONSOLE, commandBuffer, bufIndex);
-		write( FD_CONSOLE, "01234", strcmp( commandBuffer, "hello" ));
-
-		if(strcmp( commandBuffer, "hello" ) == 0 ) {
-			int16_t pid;
-
-			/*
-			** Start the hello world process, see if this thing works -- Max Roth
-			*/
+		write( FD_CONSOLE, resultBuffer, resBufIndex);
+		write( FD_CONSOLE, "\n", 0);
 	
-			pid = spawnp( hello, PRIO_USER_STD );
-			if( pid < 0 ) {
-				write( FD_CONSOLE, "shell, hello() from shell failed\n", 0 );
-				exit();
+		//splitCommand( resultBuffer, &resBufIndex, commandBuffer, &comBufIndex, paramBuffer, &pBufIndex, paramBuffer2, &pBufIndex2);
+	
+		// This code splits the entered command into at most 3 space separated words.
+		// The first word is assumed to be the command, and the other 2 are parameters.
+		// This probably could be split into its own function as I started to do above,
+		// but that will require some parameter passing.	
+		int doneCommand = 0;
+		int doneParam1 = 0;
+		for( int i = 0; i < resBufIndex; ++i ) {
+			if( resultBuffer[i] == ' ' ) {
+				if( !doneCommand ) doneCommand = 1; // Could null terminate the buffers here
+				else if ( !doneParam1 ) doneParam1 = 1;
+				else write( FD_CONSOLE, "Too many spaces!", 0 );
+
+				continue;
 			}
-		}		
 
-		for(int i = 0; i < bufIndex; ++i) {
-			
+			if (!doneCommand) {
+				commandBuffer[comBufIndex] = resultBuffer[i];
+				comBufIndex++;
+			}
 
+			else if( !doneParam1 ) {
+				paramBuffer[pBufIndex] = resultBuffer[i];
+				pBufIndex++;
+			}
+			else {
+				paramBuffer2[pBufIndex2] = resultBuffer[i];
+				pBufIndex2++;
+			}
 		}
 
 
+		// Here we have split the entered command into the actual command
+		// and 2 parameters, if there were any.
+		// Just printing them out to the console for us to see.
+		write( FD_CONSOLE, "CommandBuffer\n", 0);
+		write( FD_CONSOLE, commandBuffer, comBufIndex );
+		write( FD_CONSOLE, "\nParamBuffer1\n", 0);
+		(pBufIndex > 0 ? write( FD_CONSOLE, paramBuffer, pBufIndex ) : write(FD_CONSOLE, "empty", 0));
+		write( FD_CONSOLE, "\nParamBuffer2\n", 0);
+		(pBufIndex2 > 0 ? write( FD_CONSOLE, paramBuffer2, pBufIndex2 ) : write(FD_CONSOLE, "empty", 0));
+
+
+		// Now we need to check what command the user entered.
+		// Again, this probably would make sense to separate into another function.
+		//checkCommand(resultBuffer
+		int isHello = 0;
+		if(comBufIndex == 5) {
+			for(int i = 0; i < 5; ++i) {
+				if(commandBuffer[i] != helloCommandString[i]) break;
+				if( i == 4 ) isHello = 1; // There's got to be a better way
+			}
+		}
+
+		if(isHello) {
+			int16_t pid;
+			pid = spawnp( helloCommand, PRIO_USER_HIGH );
+			if( pid < 0 ) {
+				write( FD_CONSOLE, "init, spawnp() hello failed\n", 0 );
+				exit();
+			}
+			isHello = 0;
+		}
+
+		// Check for the ls command, yes this is a really inefficient way of doing it..
+		int isLs = 0;
+		if(comBufIndex == 2) {
+			for(int i = 0; i < 2; ++i) {
+				if(commandBuffer[i] != lsCommandString[i]) break;
+				if( i == 1 ) isLs = 1;
+			}
+		}
+
+		if(isLs) {
+			int16_t pid;
+			pid = spawnp( lsCommand, PRIO_USER_HIGH );
+			if( pid < 0 ) {
+				write( FD_CONSOLE, "init, spawnp() ls failed\n", 0 );
+				exit();
+			}
+			isLs = 0;
+		}
+
+		// Reset the parameters and wait for the next command to be entered
 		gotCommand = 0;
-		bufIndex = -1;
+		resBufIndex = -1;
+		usedSpace = 1;
+		comBufIndex = 0;
+		pBufIndex = 0;
+		pBufIndex2 = 0;
+		
+
+		// Should we sleep for a quarter of a second to let the spawned process run?
+		// This also helps to put this next $ symbol on the line after the process
+		sleep( SECONDS_TO_MS(.25) );
 		
 	}
 }
+
+void helloCommand( void ) {
+
+	write(FD_CONSOLE, "\nIn Hello Command\n", 0);
+	write(FD_SIO, "\nhello command\n", 0);
+
+	exit();
+}
+
+
+void lsCommand( void ) {
+	
+	write(FD_CONSOLE, "\nIn ls Command\n", 0);
+	write(FD_SIO, "\n  File Info...\n  file1.txt   file2.txt\n", 0);
+	exit();
+}
+
+/*
+void splitCommand(char *resultBuffer, int *resBufIndex, char *commandBuffer, int *comBufIndex, char *paramBuffer, int *pBufIndex, char *paramBuffer2, int *pBufIndex2) {
+	
+	int doneCommand = 0;
+	int doneParam1 = 0;
+
+	for( int i = 0; i < (*resBufIndex); ++i ) {
+		if( resultBuffer == ' ' ) {
+			if( !doneCommand ) doneCommand = 1;
+			else if ( !doneParam1 ) doneParam1 = 1;
+			else write( FD_CONSOLE, "Too many spaces!", 0 );
+		}
+
+		if (!doneCommand) {
+			
+		
+		}
+
+
+	}
+}
+
+*/
 
 
 
