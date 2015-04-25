@@ -977,6 +977,9 @@ void shell( void ) {
 	}
 }
 
+/*
+** "Hello World" type process to test process creation and command matching in the shell.
+*/
 void helloCommand( void ) {
 
 	write(FD_CONSOLE, "\nIn Hello Command\n", 0);
@@ -985,7 +988,9 @@ void helloCommand( void ) {
 	exit();
 }
 
-
+/*
+** Placeholder ls command process. For now just outputs sample text...
+*/
 void lsCommand( void ) {
 	
 	write(FD_CONSOLE, "\nIn ls Command\n", 0);

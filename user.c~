@@ -754,12 +754,12 @@ void idle( void ) {
 	** Go into an infinite loop at low priority, printing dot characters.
 	*/
 
-	write( FD_SIO, ".", 1 );
+//	write( FD_SIO, ".", 1 );
 
 	for(;;) {
 		for( int i = 0; i < DELAY_LONG; ++i )
 			continue;
-		write( FD_SIO, ".", 1 );
+//		write( FD_SIO, ".", 1 );
 	}
 
 	/*
