@@ -1,0 +1,21 @@
+SFS 2.0 is a simple filesystem.
+
+Quality assurance:
+  * Unit tests pass in test/test.c
+  * Each test performed was examined on a bit-level by dumping the contents of the disk
+  * No errors or memory leaks detected by valgrind
+
+Known compatibility issues with Xinu (all are dirty fixes in this branch):
+  compile/platforms/raspberry-pi/platformVars	C99 CFLAG isn't set.
+  include/limits.h				UINT32_MAX isn't defined.
+  include/stdlib.h				NULL isn't defined.
+  include/string.h				strtok isn't defined.
+  include/string.h				strlen isn't defined.
+  include/string.h				strcpy isn't defined.
+  system/platforms/raspberry-pi/stdint.h	uint64_t isn't defined.
+
+Assuming you've fixed the above errors, to port to Xinu:
+  * Edit XINU_PATH variable in XinuPatch
+  * Execute the script
+  * Add C files copied to system to the Makerules in said directory (ex: 'C_FILES += sfs.c sfs_queue.c sfs_bitmap.c sfs_crc.c')
+  * Compile
