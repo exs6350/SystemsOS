@@ -797,6 +797,9 @@ int strlen(char* str) {
 }
 
 int strcmp(char* str1, char* str2) {
+	write( FD_CONSOLE, "0123456789", strlen(str1));
+	write( FD_CONSOLE, "0123456789", strlen(str2));
+
 	if(strlen(str1) != strlen(str2)) {
 		return 2;
 	}	
@@ -806,7 +809,12 @@ int strcmp(char* str1, char* str2) {
 
 	while(strptr1 != '\0' || strptr2 != '\0') {
 
+		write( FD_CONSOLE, " ", 1);
+		write( FD_CONSOLE, strptr1, 1);
+		write( FD_CONSOLE, strptr2, 1);
+		write( FD_CONSOLE, " ", 1);
 		if(strptr1 != strptr2) {
+			
 			return 1;
 		}
 

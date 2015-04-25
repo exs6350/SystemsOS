@@ -102,6 +102,10 @@ void hello( void );
 
 void shell( void );
 
+//void hello( void );
+
+//void splitCommand(char *resultBuffer, int *resBufIndex, char *commandBuffer, int *comBufIndex, char *paramBuffer, int *pBufIndex, char *paramBuffer2, int *pBufIndex2);
+
 #endif
 
 #endif
