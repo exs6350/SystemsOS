@@ -995,7 +995,6 @@ void lsCommand( void ) {
 
 /*
 void splitCommand(char *resultBuffer, int *resBufIndex, char *commandBuffer, int *comBufIndex, char *paramBuffer, int *pBufIndex, char *paramBuffer2, int *pBufIndex2) {
-	
 	int doneCommand = 0;
 	int doneParam1 = 0;
 
