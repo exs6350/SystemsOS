@@ -811,10 +811,10 @@ int strcmp(char* str1, char* str2) {
 
 	while(strptr1 != '\0' || strptr2 != '\0') {
 
-		write( FD_CONSOLE, " ", 1);
+		write( FD_CONSOLE, " ", 0);
 		write( FD_CONSOLE, strptr1, 1);
 		write( FD_CONSOLE, strptr2, 1);
-		write( FD_CONSOLE, " ", 1);
+		write( FD_CONSOLE, " ", 0);
 		if(strptr1 != strptr2) {
 			
 			return 1;
@@ -845,7 +845,6 @@ void shell( void ) {
 	char *lsCommandString = "ls";
 	
 	
-
 	while( 1 ) {
 		write( FD_SIO, "$ ", 0 );
 		
@@ -874,8 +873,16 @@ void shell( void ) {
 				//sleep( SECONDS_TO_MS(.5) );
 			}
 		}
-		write( FD_CONSOLE, resultBuffer, resBufIndex);
-		write( FD_CONSOLE, "\n", 0);
+		//write( FD_CONSOLE, resultBuffer, resBufIndex);
+		//write( FD_CONSOLE, "\n", 0);
+
+		// Skip the rest of the code here if the user entered nothing
+		if(resBufIndex == 0) {
+			gotCommand = 0;
+			resBufIndex = -1;
+			usedSpace = 1;
+			continue;
+		}
 	
 		//splitCommand( resultBuffer, &resBufIndex, commandBuffer, &comBufIndex, paramBuffer, &pBufIndex, paramBuffer2, &pBufIndex2);
 	
@@ -885,11 +892,13 @@ void shell( void ) {
 		// but that will require some parameter passing.	
 		int doneCommand = 0;
 		int doneParam1 = 0;
+		int doneParam2 = 0;
 		for( int i = 0; i < resBufIndex; ++i ) {
 			if( resultBuffer[i] == ' ' ) {
-				if( !doneCommand ) doneCommand = 1; // Could null terminate the buffers here
-				else if ( !doneParam1 ) doneParam1 = 1;
-				else write( FD_CONSOLE, "Too many spaces!", 0 );
+				if( !doneCommand ) doneCommand = 1;
+				else if( !doneParam1 ) doneParam1 = 1;
+				else if( !doneParam2 ) doneParam2 = 1;
+				else write( FD_CONSOLE, "Ignoring extra spaces!", 0 );
 
 				continue;
 			}
@@ -903,28 +912,48 @@ void shell( void ) {
 				paramBuffer[pBufIndex] = resultBuffer[i];
 				pBufIndex++;
 			}
-			else {
+			else if( !doneParam2 ) {
 				paramBuffer2[pBufIndex2] = resultBuffer[i];
 				pBufIndex2++;
 			}
+			else {
+				write( FD_CONSOLE, "Ignoring extra params!", 0 );
+			}
 		}
-
+		// Null terminate buffer.
+		commandBuffer[comBufIndex] = '\0';
+		paramBuffer[pBufIndex] = '\0';
+		paramBuffer2[pBufIndex2] = '\0';
+		
 
 		// Here we have split the entered command into the actual command
 		// and 2 parameters, if there were any.
 		// Just printing them out to the console for us to see.
 		write( FD_CONSOLE, "CommandBuffer\n", 0);
-		write( FD_CONSOLE, commandBuffer, comBufIndex );
+		write( FD_CONSOLE, commandBuffer, 0 );
 		write( FD_CONSOLE, "\nParamBuffer1\n", 0);
-		(pBufIndex > 0 ? write( FD_CONSOLE, paramBuffer, pBufIndex ) : write(FD_CONSOLE, "empty", 0));
+		(pBufIndex > 0 ? write( FD_CONSOLE, paramBuffer, 0 ) : write(FD_CONSOLE, "empty", 0));
 		write( FD_CONSOLE, "\nParamBuffer2\n", 0);
-		(pBufIndex2 > 0 ? write( FD_CONSOLE, paramBuffer2, pBufIndex2 ) : write(FD_CONSOLE, "empty", 0));
+		(pBufIndex2 > 0 ? write( FD_CONSOLE, paramBuffer2, 0 ) : write(FD_CONSOLE, "empty", 0));
+		write(FD_CONSOLE, "\n", 0);
 
 
 		// Now we need to check what command the user entered.
 		// Again, this probably would make sense to separate into another function.
-		//checkCommand(resultBuffer
-		int isHello = 0;
+		// TODO HASH function here
+		int res = 1;
+		if(res == 0) {
+			int16_t pid;
+			pid = spawnp( helloCommand, PRIO_USER_HIGH );
+			if( pid < 0 ) {
+				write( FD_CONSOLE, "init, spawnp() hello failed\n", 0 );
+				exit();
+			}
+		}
+		else {
+			write(FD_CONSOLE, "res !=0", 0);
+		}
+/*
 		if(comBufIndex == 5) {
 			for(int i = 0; i < 5; ++i) {
 				if(commandBuffer[i] != helloCommandString[i]) break;
@@ -941,25 +970,7 @@ void shell( void ) {
 			}
 			isHello = 0;
 		}
-
-		// Check for the ls command, yes this is a really inefficient way of doing it..
-		int isLs = 0;
-		if(comBufIndex == 2) {
-			for(int i = 0; i < 2; ++i) {
-				if(commandBuffer[i] != lsCommandString[i]) break;
-				if( i == 1 ) isLs = 1;
-			}
-		}
-
-		if(isLs) {
-			int16_t pid;
-			pid = spawnp( lsCommand, PRIO_USER_HIGH );
-			if( pid < 0 ) {
-				write( FD_CONSOLE, "init, spawnp() ls failed\n", 0 );
-				exit();
-			}
-			isLs = 0;
-		}
+*/
 
 		// Reset the parameters and wait for the next command to be entered
 		gotCommand = 0;
@@ -977,6 +988,9 @@ void shell( void ) {
 	}
 }
 
+/*
+** "Hello World" type process to test process creation and command matching in the shell.
+*/
 void helloCommand( void ) {
 
 	write(FD_CONSOLE, "\nIn Hello Command\n", 0);
@@ -985,7 +999,9 @@ void helloCommand( void ) {
 	exit();
 }
 
-
+/*
+** Placeholder ls command process. For now just outputs sample text...
+*/
 void lsCommand( void ) {
 	
 	write(FD_CONSOLE, "\nIn ls Command\n", 0);
