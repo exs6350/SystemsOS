@@ -15,10 +15,12 @@
 */
 sfs_file_table* sfs_init( void ) {
 
-	/*sfs_file_table* filesys = (sfs_file_table*) \
-		malloc(sizeof(sfs_file_table)); //find malloc equivalent
+	//Set file system to a point 1 gig into the RAM
+	&fileSystem = (void *)0x40000000;
+
+	//*fileSystem = (sfs_file_table*) malloc(sizeof(sfs_file_table)); //find malloc equivalent
 
 	//Find another way to do this, not neccesary but would be nice
-	memset(filesys, 0, sizeof(&filesys)); //Clean data is good data
-	filesys->current_location = -1;*/
+	//memset(filesys, 0, sizeof(&filesys));
+	//filesys->current_location = -1;
 }

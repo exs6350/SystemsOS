@@ -11,10 +11,10 @@
 # User supplied files
 #
 U_C_SRC = clock.c klibc.c process.c queue.c scheduler.c sio.c \
-	stack.c syscall.c system.c ulibc.c user.c
+	stack.c syscall.c system.c ulibc.c user.c fileSystem.c
 
 U_C_OBJ = clock.o klibc.o process.o queue.o scheduler.o sio.o \
-	stack.o syscall.o system.o ulibc.o user.o
+	stack.o syscall.o system.o ulibc.o user.o fileSystem.h
 
 U_S_SRC = klibs.S ulibs.S
 
@@ -202,6 +202,7 @@ support.o: startup.h support.h c_io.h /home/fac/wrc/include/x86arch.h
 support.o: bootstrap.h
 clock.o: /home/fac/wrc/include/x86arch.h startup.h clock.h types.h process.h
 clock.o: stack.h queue.h scheduler.h sio.h syscall.h common.h
+fileSystem.o: types.h
 klibc.o: common.h
 process.o: common.h process.h types.h clock.h stack.h queue.h
 queue.o: common.h types.h stack.h process.h clock.h scheduler.h queue.h
