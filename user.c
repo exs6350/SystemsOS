@@ -52,7 +52,7 @@ void user_s( void ); void user_t( void ); void user_u( void );
 void user_v( void ); void user_w( void ); void user_x( void );
 void user_y( void ); void user_z( void );
 
-void helloCommand( void ); void lsCommand( void );
+void helloCommand( void ); void lsCommand( void );void cdCommand( void );
 
 /*
 ** Users A, B, and C are identical, except for the character they
@@ -835,10 +835,10 @@ Simple hash to figure out what command is entered in shell
 int hashCommand(char* commandBuffer){
 	int hash = 0;
 	char* temp = commandBuffer;
-	for(while temp != '\0') {
+	while (temp != '\0') {
 		hash += (int)temp;
 		temp++;
-		write( FD_CONSOLE, hash, 0);
+		write( FD_CONSOLE, (char*)hash, 0);
 	} 
 
 	return hash;
@@ -857,9 +857,6 @@ void shell( void ) {
 	int pBufIndex = 0;
 	int pBufIndex2 = 0;
 	int usedSpace = 1; // Set to 1 because you can't have a space at the beginning
-
-	char *helloCommandString = "hello";
-	char *lsCommandString = "ls";
 
 	while( 1 ) {
 		write( FD_SIO, "$ ", 0 );
@@ -960,11 +957,11 @@ void shell( void ) {
 
 		//easier way of doing it hash the command and we can figure out what it is
 		int hash = hashCommand(commandBuffer);
-
+		int16_t pid;
 		switch(hash) {
 			//ls command
 			case 223:
-				int16_t pid = spawnp(lsCommand, PRIO_USER_HIGH);			
+				pid = spawnp(lsCommand, PRIO_USER_HIGH);			
 				if(pid < 0){
 					write(FD_CONSOLE, "ls command spawn() has failed\n", 0);
 					exit();
@@ -972,7 +969,7 @@ void shell( void ) {
 				break;
 			//hello command
 			case 532:
-				int16_t pid = spawnp(helloCommand, PRIO_USER_HIGH);
+				pid = spawnp(helloCommand, PRIO_USER_HIGH);
 				if( pid < 0) {
 					write( FD_CONSOLE, "init, spawn() hello failed\n", 0);
 					exit();
@@ -980,7 +977,7 @@ void shell( void ) {
 				break;
 			//cd command
 			case 199:
-				int16_t pid = spawnp( cdCommand, PRIO_USER_HIGH);
+				pid = spawnp(cdCommand, PRIO_USER_HIGH);
 				if( pid < 0 ) {
 					write( FD_CONSOLE, "cd command spawn() has failed\n",0);
 					exit();
@@ -994,7 +991,7 @@ void shell( void ) {
 				break;
 			default:
 				write(FD_CONSOLE, "command not recognized: ", 0);
-				write(FD_CONSOLE, hash, 4);
+				write(FD_CONSOLE, (char*)hash, 0);
 				write(FD_CONSOLE, "\n", 0);	
 				break;
 		}
@@ -1036,7 +1033,7 @@ void lsCommand( void ) {
 	exit();
 }
 
-void cd Command( void ) {
+void cdCommand( void ) {
 	
 	
 }
