@@ -59,7 +59,7 @@ sfs_file_table* fileSystem;
 ** Create and initialize a file system, returning it's representative
 ** sfs_file_table structure
 */
-void sfs_init( void );
+void _sfs_init( void );
 
 sfs_file_table* get_fileSystem( void );
 

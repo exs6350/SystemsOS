@@ -28,6 +28,9 @@
 // need the __default_exit__() prototype
 #include "ulib.h"
 
+// include file system
+#include "fileSystem.h"
+
 /*
 ** PRIVATE DEFINITIONS
 */
@@ -182,6 +185,7 @@ void _init( void ) {
 	_sio_modinit();
 	_sys_modinit();
 	_clock_modinit();
+	_sfs_init();
 
 	c_puts( "\n" );
 
