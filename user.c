@@ -860,11 +860,7 @@ void shell( void ) {
 
 	char *helloCommandString = "hello";
 	char *lsCommandString = "ls";
-	
-<<<<<<< HEAD
-=======
-	
->>>>>>> 7edc596f5eb4f49a65d6037ec56fdb1fce5c1d24
+
 	while( 1 ) {
 		write( FD_SIO, "$ ", 0 );
 		
@@ -960,19 +956,23 @@ void shell( void ) {
 
 		// Now we need to check what command the user entered.
 		// Again, this probably would make sense to separate into another function.
-<<<<<<< HEAD
 		//checkCommand(resultBuffer
 
-		/*easier way of doing it hash the command and we can figure out what it is
+		//easier way of doing it hash the command and we can figure out what it is
 		int hash = hashCommand(commandBuffer);
 
 		switch(hash) {
 			//ls command
 			case 223:
-					
+				int16_t pid = spawnp(lsCommand, PRIO_USER_HIGH);			
+				if(pid < 0){
+					write(FD_CONSOLE, "ls command spawn() has failed\n", 0);
+					exit();
+				}
+				break;
 			//hello command
 			case 532:
-				int16_t pid = spawnp( helloCommand, PRIO_USER_HIGH);
+				int16_t pid = spawnp(helloCommand, PRIO_USER_HIGH);
 				if( pid < 0) {
 					write( FD_CONSOLE, "init, spawn() hello failed\n", 0);
 					exit();
@@ -980,50 +980,24 @@ void shell( void ) {
 				break;
 			//cd command
 			case 199:
+				int16_t pid = spawnp( cdCommand, PRIO_USER_HIGH);
+				if( pid < 0 ) {
+					write( FD_CONSOLE, "cd command spawn() has failed\n",0);
+					exit();
+				}
+				break;
 			//mkdir command
 			case 535:
-			//create file command
-			case 628:
+				break;
+			//mkfile command
+			case 632:
+				break;
 			default:
 				write(FD_CONSOLE, "command not recognized: ", 0);
 				write(FD_CONSOLE, hash, 4);
 				write(FD_CONSOLE, "\n", 0);	
+				break;
 		}
-		*/
-		int isHello = 0;
-=======
-		// TODO HASH function here
-		int res = 1;
-		if(res == 0) {
-			int16_t pid;
-			pid = spawnp( helloCommand, PRIO_USER_HIGH );
-			if( pid < 0 ) {
-				write( FD_CONSOLE, "init, spawnp() hello failed\n", 0 );
-				exit();
-			}
-		}
-		else {
-			write(FD_CONSOLE, "res !=0", 0);
-		}
-/*
->>>>>>> 7edc596f5eb4f49a65d6037ec56fdb1fce5c1d24
-		if(comBufIndex == 5) {
-			for(int i = 0; i < 5; ++i) {
-				if(commandBuffer[i] != helloCommandString[i]) break;
-				if( i == 4 ) isHello = 1; // There's got to be a better way
-			}
-		}
-
-		if(isHello) {
-			int16_t pid;
-			pid = spawnp( helloCommand, PRIO_USER_HIGH );
-			if( pid < 0 ) {
-				write( FD_CONSOLE, "init, spawnp() hello failed\n", 0 );
-				exit();
-			}
-			isHello = 0;
-		}
-*/
 
 		// Reset the parameters and wait for the next command to be entered
 		gotCommand = 0;
@@ -1062,39 +1036,15 @@ void lsCommand( void ) {
 	exit();
 }
 
-/*
-void splitCommand(char *resultBuffer, int *resBufIndex, char *commandBuffer, int *comBufIndex, char *paramBuffer, int *pBufIndex, char *paramBuffer2, int *pBufIndex2) {
-	int doneCommand = 0;
-	int doneParam1 = 0;
-
-	for( int i = 0; i < (*resBufIndex); ++i ) {
-		if( resultBuffer == ' ' ) {
-			if( !doneCommand ) doneCommand = 1;
-			else if ( !doneParam1 ) doneParam1 = 1;
-			else write( FD_CONSOLE, "Too many spaces!", 0 );
-		}
-
-		if (!doneCommand) {
-			
-		
-		}
-
-
-	}
+void cd Command( void ) {
+	
+	
 }
 
-*/
+void mkdirCommand( void ) {
+	
+}
 
+void mkfileCommand( void ) {
 
-
-
-
-
-
-
-
-
-
-
-
-
+}
