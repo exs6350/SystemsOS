@@ -202,7 +202,7 @@ support.o: startup.h support.h c_io.h /home/fac/wrc/include/x86arch.h
 support.o: bootstrap.h
 clock.o: /home/fac/wrc/include/x86arch.h startup.h clock.h types.h process.h
 clock.o: stack.h queue.h scheduler.h sio.h syscall.h common.h
-fileSystem.o: types.h
+fileSystem.o: types.h klib.h
 klibc.o: common.h
 process.o: common.h process.h types.h clock.h stack.h queue.h
 queue.o: common.h types.h stack.h process.h clock.h scheduler.h queue.h

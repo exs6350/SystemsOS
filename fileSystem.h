@@ -10,6 +10,7 @@
 #define SFS_H
 
 #include "types.h"
+#include "klib.h"
 
 //Constants
 
