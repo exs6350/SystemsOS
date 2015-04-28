@@ -53,12 +53,14 @@ typedef struct sfs_file_table {
 ** A global pointer to the file system table
 ** DO NOT REFERENCE BEFORE RUNNING sfs_init();
 */
-extern sfs_file_table* fileSystem;
+sfs_file_table* fileSystem;
 
 /*
 ** Create and initialize a file system, returning it's representative
 ** sfs_file_table structure
 */
-sfs_file_table* sfs_init( void );
+void sfs_init( void );
+
+sfs_file_table* get_fileSystem( void );
 
 #endif
