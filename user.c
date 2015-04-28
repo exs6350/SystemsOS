@@ -5,8 +5,10 @@
 **
 ** Author:	CSCI-452 class of 20145
 **
-** Contributor:
-**
+** Contributor: Ernesto Soltero
+**		Nick Jenis
+**		Max Roth
+**			
 ** Description:	User routines.
 */
 
@@ -827,6 +829,21 @@ int strcmp(char* str1, char* str2) {
 	return 0;
 }
 
+/*
+Simple hash to figure out what command is entered in shell
+*/
+int hashCommand(char* commandBuffer){
+	int hash = 0;
+	char* temp = commandBuffer;
+	for(while temp != '\0') {
+		hash += (int)temp;
+		temp++;
+		write( FD_CONSOLE, hash, 0);
+	} 
+
+	return hash;
+}
+
 void shell( void ) {
 
 	char readBuffer[5];
@@ -844,8 +861,6 @@ void shell( void ) {
 	char *helloCommandString = "hello";
 	char *lsCommandString = "ls";
 	
-	
-
 	while( 1 ) {
 		write( FD_SIO, "$ ", 0 );
 		
@@ -924,6 +939,34 @@ void shell( void ) {
 		// Now we need to check what command the user entered.
 		// Again, this probably would make sense to separate into another function.
 		//checkCommand(resultBuffer
+
+		/*easier way of doing it hash the command and we can figure out what it is
+		int hash = hashCommand(commandBuffer);
+
+		switch(hash) {
+			//ls command
+			case 223:
+					
+			//hello command
+			case 532:
+				int16_t pid = spawnp( helloCommand, PRIO_USER_HIGH);
+				if( pid < 0) {
+					write( FD_CONSOLE, "init, spawn() hello failed\n", 0);
+					exit();
+				}
+				break;
+			//cd command
+			case 199:
+			//mkdir command
+			case 535:
+			//create file command
+			case 628:
+			default:
+				write(FD_CONSOLE, "command not recognized: ", 0);
+				write(FD_CONSOLE, hash, 4);
+				write(FD_CONSOLE, "\n", 0);	
+		}
+		*/
 		int isHello = 0;
 		if(comBufIndex == 5) {
 			for(int i = 0; i < 5; ++i) {
