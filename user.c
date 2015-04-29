@@ -835,10 +835,10 @@ Simple hash to figure out what command is entered in shell
 int hashCommand(char* commandBuffer){
 	int hash = 0;
 	char* temp = commandBuffer;
-	while (temp != '\0') {
-		hash += (int)temp;
+	while (*temp != '\0') {
+		hash += (int)*temp;
 		temp++;
-		write( FD_CONSOLE, (char*)hash, 0);
+		//write( FD_CONSOLE, (char*)hash, 0);
 	} 
 
 	return hash;
@@ -886,8 +886,6 @@ void shell( void ) {
 				//sleep( SECONDS_TO_MS(.5) );
 			}
 		}
-		//write( FD_CONSOLE, resultBuffer, resBufIndex);
-		//write( FD_CONSOLE, "\n", 0);
 
 		// Skip the rest of the code here if the user entered nothing
 		if(resBufIndex == 0) {
@@ -897,8 +895,7 @@ void shell( void ) {
 			continue;
 		}
 	
-		//splitCommand( resultBuffer, &resBufIndex, commandBuffer, &comBufIndex, paramBuffer, &pBufIndex, paramBuffer2, &pBufIndex2);
-	
+
 		// This code splits the entered command into at most 3 space separated words.
 		// The first word is assumed to be the command, and the other 2 are parameters.
 		// This probably could be split into its own function as I started to do above,
@@ -991,7 +988,7 @@ void shell( void ) {
 				break;
 			default:
 				write(FD_CONSOLE, "command not recognized: ", 0);
-				write(FD_CONSOLE, (char*)hash, 0);
+				//write(FD_CONSOLE, (char*)hash, 0);
 				write(FD_CONSOLE, "\n", 0);	
 				break;
 		}
