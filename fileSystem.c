@@ -23,6 +23,39 @@ void _sfs_init( void ) {
 	fileSystem->current_location = -1;
 }
 
-sfs_file_table* get_fileSystem( void ) {
+/*
+** Create a new file
+*/
+void _sfs_create(char* filename) {
+}
+
+/*
+** Delete an existing file
+*/
+void _sfs_delete(char* filename) {
+}
+
+/*
+** Read an existing file
+*/
+uint8_t* _sfs_read(char* filename) {
+	return (uint8_t*)1;
+}
+
+/*
+** Write to an existing file
+*/
+void _sfs_write(char* filename, uint16_t size, void* buffer) {
+}
+
+/*
+** List all files in the directory
+** Weird thing in old SFS file, no directories???
+*/
+uint8_t* _sfs_list( void ) {
+	return (uint8_t*)1;
+}
+
+sfs_file_table* _get_fileSystem( void ) {
 	return fileSystem;
 }
