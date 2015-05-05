@@ -274,6 +274,8 @@ void _init( void ) {
 
 	_schedule( pcb );
 
-
-
+	c_puts( "Creating file...\n" );
+	int c_test = _sfs_create("TEST.t");
+	c_puts( "Deleting file...\n" );
+	int d_test = _sfs_delete("TEST.t");
 }

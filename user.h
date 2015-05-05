@@ -106,6 +106,8 @@ void shell( void );
 
 //void splitCommand(char *resultBuffer, int *resBufIndex, char *commandBuffer, int *comBufIndex, char *paramBuffer, int *pBufIndex, char *paramBuffer2, int *pBufIndex2);
 
+int hashCommand(char* commandBuffer);
+
 #endif
 
 #endif
