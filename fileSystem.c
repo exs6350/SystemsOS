@@ -86,10 +86,10 @@ uint8_t* _sfs_read(char* filename) {
 	for(int i = 0; i < NUM_ENTRIES; ++i) {
 		sfs_file *entry = &fileSystem->files[i];
 		// check for the right file
-		//if(strcmp((char*) &entry->filename, filename))
-		//	continue;
-
-		// 
+		if(hashCommand(filename) != hashCommand((char*)&entry->filename)) 
+			continue;
+		
+		// If there is no data here, return nothing
 		if(entry->payload == 0) return data;
 
 		// Allocate a block for the read
@@ -117,10 +117,10 @@ void _sfs_write(char* filename, uint16_t size, void* buffer) {
 	for(int i = 0; i < NUM_ENTRIES; ++i) {
 		sfs_file *entry = &fileSystem->files[i];
 		
-		// check for the right file
-		//if(strcmp((char*) &entry->filename, filename))
-		//	continue;
-
+		// Check for the right file
+		if(hashCommand(filename) != hashCommand((char*)&entry->filename)) 
+			continue;
+		
 		// Set the starting point for this file
 		if(fileSystem->current_location == -1)
 			entry->payload = ++fileSystem->current_location;
@@ -149,6 +149,8 @@ void _sfs_write(char* filename, uint16_t size, void* buffer) {
 ** Weird thing in old SFS file, no directories???
 */
 uint8_t* _sfs_list( void ) {
+
+// Will this function print the files here? Or should we return some pointer to the list of files?
 	return (uint8_t*)1;
 }
 
