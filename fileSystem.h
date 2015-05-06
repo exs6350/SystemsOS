@@ -63,14 +63,15 @@ sfs_file_table* fileSystem;
 void _sfs_init( void );
 
 /*
-** Create a new file
+** Create a new file - do this
+** Return 0 on success, anything else on error
 */
-void _sfs_create(char* filename);
+uint8_t _sfs_create(char* filename);
 
 /*
-** Delete an existing file
+** Delete an existing file - do this
 */
-void _sfs_delete(char* filename);
+uint8_t _sfs_delete(char* filename);
 
 /*
 ** Read an existing file
