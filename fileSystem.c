@@ -23,6 +23,16 @@ void _sfs_init( void ) {
 	//Clean the memory where we are making the file system
 	_memset((uint8_t *)fileSystem, 0, sizeof(&fileSystem));
 	fileSystem->current_location = -1;
+
+	// Set the location for the read buffer which is used to pass
+	// data back to the user from the file system
+	// Also, I have no idea where this is, but it is different than the fs
+	sfs_read_buffer* readBuf = &fileSystem->read_buffer;
+	readBuf->start = 0x30000000;
+	readBuf->size = 0;
+	readBuf->buf = (void *) readBuf->start;
+	//fileSystem->read_buffer.start = (void *)0x4000000;
+	//fileSystem->read_buffer->size = 0;
 }
 
 /*
@@ -94,13 +104,20 @@ uint8_t* _sfs_read(char* filename) {
 
 		// Allocate a block for the read
 		//data = * to block of size size_of(unint8_t) * entry->size
+		
 
+		sfs_read_buffer* read_buffer = &fileSystem->read_buffer;
 		sfs_data* source = &fileSystem->blocks[entry->payload];
 		uint16_t totalToRead = entry->size;
 		while(source) {
 			uint16_t readSize = totalToRead;
 			if(readSize > DATA_BLOCK_SIZE - sizeof(uint8_t)) readSize = DATA_BLOCK_SIZE - sizeof(uint8_t);
 			// Copy the data out of the filesystem
+			for( int i=0; i < readSize; ++i ) {
+				read_buffer->buf = source->data[i];
+				read_buffer->size++;
+				read_buffer->buf++;
+			}
 			totalToRead -= readSize;
 			if(source->next) source = (sfs_data*) &fileSystem->blocks[source->next];
 			else source = 0;
@@ -135,12 +152,15 @@ void _sfs_write(char* filename, uint16_t size, void* buffer) {
 			if( writeSize > DATA_BLOCK_SIZE - sizeof(uint8_t))
 				writeSize = DATA_BLOCK_SIZE - sizeof(uint8_t);
 			// Copy the data from the buffer to our file system
-			//memcpy
+			for(int i = 0; i < writeSize; ++i ) {
+				destination->data[i] = (uint8_t) buffer;
+				buffer++;
+			}
 			totalToWrite -= writeSize;
 			if(totalToWrite) destination = &fileSystem->blocks[fileSystem->current_location++];
 		}
 		// We have finished writing
-		break;		
+		break;
 	}
 }
 
