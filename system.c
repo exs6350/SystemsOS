@@ -275,7 +275,24 @@ void _init( void ) {
 	_schedule( pcb );
 
 	c_puts( "Creating file...\n" );
-	int c_test = _sfs_create("TEST.t");
+	int c_test = _sfs_create("TEST.txt");
+	if(c_test == 0) c_puts("Create success\n");
+
+	c_puts( "Writing to file...\n" );
+	char* buf = "abc";
+	_sfs_write("TEST.txt", 4, (uint8_t *) buf);
+
+	c_puts( "Read from file...\n" );
+	uint8_t* buffer = _sfs_read("TEST.txt");
+	if(buffer) c_puts("YES\n");
+	
 	c_puts( "Deleting file...\n" );
-	int d_test = _sfs_delete("TEST.t");
+	int d_test = _sfs_delete("TEST.txt");
+	if(d_test == 0) c_puts("delete success");
+
+
+
+
+
+
 }

@@ -41,13 +41,13 @@ typedef struct sfs_data {
 	uint8_t data[DATA_BLOCK_SIZE - sizeof(uint8_t)];
 } sfs_data;
 
-
+/*
 typedef struct sfs_read_buffer {
 	uint32_t start;	
 	uint8_t size;
 	uint32_t buf;
 } sfs_read_buffer;
-
+*/
 
 /*
 ** Structure representing the SFS file table and underlying structure
@@ -55,7 +55,6 @@ typedef struct sfs_read_buffer {
 typedef struct sfs_file_table {
 	sfs_file files[NUM_ENTRIES];
 	uint8_t current_location;
-	sfs_read_buffer read_buffer;
 	sfs_data blocks[NUM_BLOCKS];
 } sfs_file_table;
 
@@ -92,7 +91,7 @@ uint8_t* _sfs_read(char* filename);
 /*
 ** Write to an existing file
 */
-void _sfs_write(char* filename, uint16_t size, void* buffer);
+void _sfs_write(char* filename, uint16_t size, uint8_t* buffer);
 
 /*
 ** List all files in the directory
