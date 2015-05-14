@@ -783,52 +783,6 @@ void hello( void ) {
 	exit();
 }
 
-int strlen(char* str) {
-	char* strptr = str;
-
-	int counter = 0;
-
-	while(strptr != '\0') {
-		counter++;
-		if(counter >= 255) {
-			break;
-		}
-		strptr++;
-	}
-
-	return counter; 
-	
-}
-
-int strcmp(char* str1, char* str2) {
-	write( FD_CONSOLE, "0123456789", strlen(str1));
-	write( FD_CONSOLE, "0123456789", strlen(str2));
-
-	if(strlen(str1) != strlen(str2)) {
-		return 2;
-	}	
-
-	char* strptr1 = str1;
-	char* strptr2 = str2;
-
-	while(strptr1 != '\0' || strptr2 != '\0') {
-
-		write( FD_CONSOLE, " ", 0);
-		write( FD_CONSOLE, strptr1, 1);
-		write( FD_CONSOLE, strptr2, 1);
-		write( FD_CONSOLE, " ", 0);
-		if(strptr1 != strptr2) {
-			
-			return 1;
-		}
-
-		strptr1++;
-		strptr2++;
-	}
-
-	return 0;
-}
-
 /*
 Simple hash to figure out what command is entered in shell
 */
@@ -842,6 +796,47 @@ int hashCommand(char* commandBuffer){
 	} 
 
 	return hash;
+}
+
+/*
+Helper function to get the length of a string or other null terminated buffer
+*/
+int len(char* buffer){
+	char* temp = buffer;
+	int len = 0;
+	while (*temp != '\0') {
+		len++;
+		temp++;
+		//write( FD_CONSOLE, (char*)hash, 0);
+	} 
+	return len;
+}
+
+/*
+Helper function to compare two strings or other null terminated buffer
+
+Returns 0 if the buffers are equal
+Returns <0 if the first buffer is greater
+Returns >0 if the second buffer is greater
+*/
+int compare(char* buffer1, char* buffer2) {
+	int sizeDiff = len(buffer1) != len(buffer2);
+	
+	if(sizeDiff != 0) {
+		return sizeDiff;
+	}
+	else {
+		char* temp1 = buffer1;
+		char* temp2 = buffer2;
+		while (*temp1 != '\0') {
+			if(*temp1 != *temp2) {
+				return (int) *temp1 - (int) *temp2;
+			}
+			temp1++;
+			temp2++;
+		}
+		return 0;
+	}
 }
 
 void shell( void ) {

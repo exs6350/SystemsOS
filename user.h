@@ -108,6 +108,20 @@ void shell( void );
 
 int hashCommand(char* commandBuffer);
 
+/*
+Helper function to get the length of a string or other null terminated buffer
+*/
+int len(char* buffer);
+
+/*
+Helper function to compare two strings or other null terminated buffer
+
+Returns 0 if the buffers are equal
+Returns <0 if the first buffer is greater
+Returns >0 if the second buffer is greater
+*/
+int compare(char* buffer1, char* buffer2);
+
 #endif
 
 #endif
