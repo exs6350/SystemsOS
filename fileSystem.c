@@ -10,6 +10,7 @@
 #include "fileSystem.h"
 #include "klib.h"
 #include "user.h"
+#include "c_io.h"
 
 /*
 ** Create and initialize a file system, returning it's representative
@@ -36,7 +37,7 @@ void _sfs_init( void ) {
 }
 
 /*
-** Create a new file - do this
+** Create a new file with one data block
 ** Return 0 on success, anything else on error
 */
 uint8_t _sfs_create(char* filename) {
@@ -52,7 +53,9 @@ uint8_t _sfs_create(char* filename) {
 			c++;
 		}
 		file->payload = fileSystem->current_location;
+		file->size = 0;
 		fileSystem->current_location++;
+		
 		return 0;
 	}
 	return 1; //No open file entries
@@ -70,9 +73,9 @@ uint8_t _sfs_delete(char* filename) {
 		_memset((uint8_t *)&file->filename, 0, sizeof(&file->filename));
 		file->size = 0;
 
-		if(file->payload == 0) {
-			return 0; //No data to delete
-		}
+		/*if(file->payload == 0) {
+			return 0; //No data to delete, should never be the case
+		}*/
 
 		sfs_data* ptr = &fileSystem->blocks[file->payload];
 		while(ptr) {
@@ -94,7 +97,7 @@ uint8_t _sfs_delete(char* filename) {
 ** Read an existing file
 */
 uint8_t* _sfs_read(char* filename) {
-	uint8_t* buffer = 0;
+	uint8_t* result = 0;
 	for(int i = 0; i < NUM_ENTRIES; ++i) {
 		sfs_file *entry = &fileSystem->files[i];
 		// check for the right file
@@ -102,19 +105,24 @@ uint8_t* _sfs_read(char* filename) {
 			continue;
 		
 		// If there is no data here, return nothing
-		if(entry->payload == 0) return 0;
+		//if(entry->payload == 0) return 0;
+		//Impossible now, every file has at least one data block
 
 		//sfs_read_buffer* read_buffer = &fileSystem->read_buffer;
 		sfs_data* source = &fileSystem->blocks[entry->payload];
 		
 		uint16_t totalToRead = entry->size;
+		uint8_t* buffer = result;
 		while(source) {
 			uint16_t readSize = totalToRead;
-			if(readSize > DATA_BLOCK_SIZE - sizeof(uint8_t)) readSize = DATA_BLOCK_SIZE - sizeof(uint8_t);
+			if(readSize > DATA_BLOCK_SIZE - sizeof(uint8_t)) {
+				readSize = DATA_BLOCK_SIZE - sizeof(uint8_t);
+			}
 			// Copy the data out of the filesystem
 			for( int i=0; i < readSize; ++i ) {
 				*buffer = source->data[i];
 				buffer++;
+				//c_printf("\n%x", source->data[i]);
 			}
 			totalToRead -= readSize;
 			if(source->next) source = (sfs_data*) &fileSystem->blocks[source->next];
@@ -123,13 +131,15 @@ uint8_t* _sfs_read(char* filename) {
 		buffer = '\0';
 		break;
 	}
-	return buffer;
+	//char* buf = "test";
+	//return (uint8_t *) buf;
+	return result;
 }
 
 /*
 ** Write to an existing file
 */
-void _sfs_write(char* filename, uint16_t size, uint8_t* buffer) {
+uint8_t _sfs_write(char* filename, uint16_t size, uint8_t* buffer) {
 	
 	for(int i = 0; i < NUM_ENTRIES; ++i) {
 		sfs_file *entry = &fileSystem->files[i];
@@ -144,7 +154,7 @@ void _sfs_write(char* filename, uint16_t size, uint8_t* buffer) {
 		else
 			entry->payload = fileSystem->current_location++;
 
-		entry->size = size;
+		entry->size += size;
 		sfs_data* destination = &fileSystem->blocks[entry->payload];
 		uint16_t totalToWrite = size;
 		while( totalToWrite ) {
@@ -160,8 +170,11 @@ void _sfs_write(char* filename, uint16_t size, uint8_t* buffer) {
 			if(totalToWrite) destination = &fileSystem->blocks[fileSystem->current_location++];
 		}
 		// We have finished writing
-		break;
+		//break;
+		return 0;
 	}
+
+	return 1;
 }
 
 /*
@@ -170,8 +183,26 @@ void _sfs_write(char* filename, uint16_t size, uint8_t* buffer) {
 */
 uint8_t* _sfs_list( void ) {
 
-// Will this function print the files here? Or should we return some pointer to the list of files?
-	return (uint8_t*)1;
+	/*uint8_t* result = 0;
+
+	uint8_t* buffer = result;
+	for(int i = 0; i < NUM_ENTRIES; ++i) {
+		sfs_file *entry = &fileSystem->files[i];
+		if(entry->filename[0] != '\0') {
+			for(int j = 0; entry->filename[j] != '\0'; j++) {
+				c_puts("IN THE LOOP!");
+				*buffer = entry->filename[j];
+				buffer++;
+				//filename++;
+				//c_printf("\n%x", *filename);
+			}
+			*buffer = '\n';
+			buffer++;
+		}
+	}
+	*buffer = '\0';
+	return result;*/
+	return (uint8_t *)1;
 }
 
 sfs_file_table* _get_fileSystem( void ) {

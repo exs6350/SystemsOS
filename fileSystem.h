@@ -91,7 +91,7 @@ uint8_t* _sfs_read(char* filename);
 /*
 ** Write to an existing file
 */
-void _sfs_write(char* filename, uint16_t size, uint8_t* buffer);
+uint8_t _sfs_write(char* filename, uint16_t size, uint8_t* buffer);
 
 /*
 ** List all files in the directory
