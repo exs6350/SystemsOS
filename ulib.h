@@ -161,6 +161,41 @@ int32_t get_process_info( uint32_t what, uint16_t who );
 
 int32_t get_system_info( uint32_t what );
 
+
+/*
+**
+**
+**
+**
+*/
+uint8_t create_file( char* filename );
+
+/*
+**
+**
+**
+**
+*/
+uint8_t delete_file( char* filename );
+
+/*
+**
+**
+**
+**
+*/
+uint8_t write_file( char* filename, uint16_t size, char* buffer );
+
+/*
+**
+**
+**
+**
+*/
+uint8_t read_file( char* filename );
+
+
+
 /*
 ** bogus - a bogus system call, for testing our syscall ISR
 **

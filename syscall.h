@@ -28,10 +28,14 @@
 #define	SYS_write		4
 #define	SYS_get_process_info	5
 #define	SYS_get_system_info	6
+#define SYS_create_file		7
+#define SYS_delete_file		8
+#define SYS_write_file		9
+#define SYS_read_file		10
 
 // number of "real" system calls
 
-#define	N_SYSCALLS	7
+#define	N_SYSCALLS	11
 
 // dummy system call code to test the syscall ISR
 

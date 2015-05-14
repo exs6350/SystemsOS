@@ -21,6 +21,7 @@
 #include "queue.h"
 #include "scheduler.h"
 #include "sio.h"
+#include "fileSystem.h"
 
 #include "support.h"
 #include "startup.h"
@@ -413,6 +414,57 @@ static void _sys_write( pcb_t *pcb ) {
 
 }
 
+static void _sys_create_file( pcb_t *pcb ) {
+	char *filename = (char *) ARG(1,pcb->context);
+
+	c_puts( "SYSCALL.C: Creating file...\n" );
+	int res = _sfs_create(filename, 0);
+	if( res == 0 ) c_puts("SYSCALL.C: Create success\n");
+	else c_puts("SYSCALL.C Create failed\n");
+	
+	RET(pcb->context) = res;
+}
+
+static void _sys_delete_file( pcb_t *pcb ) {
+	char *filename = (char *) ARG(1,pcb->context);
+	
+	c_puts( "SYSCALL.C: Deleting file...\n" );
+	int res = _sfs_delete(filename);
+	if( res == 0 ) c_puts("SYSCALL.C: Delete success\n");
+	else c_puts("SYSCALL.C Delete failed\n");
+	
+	RET(pcb->context) = res;
+
+}
+
+static void _sys_write_file( pcb_t *pcb ) {
+	char *filename = (char *) ARG(1,pcb->context);
+	uint16_t size = (uint16_t) ARG(2,pcb->context);
+	uint8_t *buf = (uint8_t *) ARG(3,pcb->context);
+	
+	c_puts(filename);
+	c_puts((char *) buf);
+
+	c_puts( "SYSCALL.C Writing to file...\n" );
+	int res = _sfs_write(filename, size, buf);
+	if(res == 0) c_puts("SYSCALL.C Write success\n");
+	else c_puts("SYSCALL.C Write failed\n");
+
+	RET(pcb->context) = res;
+}
+
+static void _sys_read_file( pcb_t *pcb ) {
+	char *filename = (char *) ARG(1,pcb->context);
+	
+	c_puts( "SYSCALL.C Reading from file...\n");
+	uint8_t *res = _sfs_read(filename);
+	c_puts( (char *) res);
+	if(res != 0) c_puts("SYSCALL.C Read success\n");
+	else c_puts("SYSCALL.C Read failed\n");
+
+	RET(pcb->context) = res;
+}
+
 /*
 ** PUBLIC FUNCTIONS
 */
@@ -448,6 +500,10 @@ void _sys_modinit( void ) {
 	_syscalls[ SYS_write ]            = _sys_write;
 	_syscalls[ SYS_get_process_info ] = _sys_get_process_info;
 	_syscalls[ SYS_get_system_info ]  = _sys_get_system_info;
+	_syscalls[ SYS_create_file ]      = _sys_create_file;
+	_syscalls[ SYS_delete_file ]      = _sys_delete_file;
+	_syscalls[ SYS_write_file ]       = _sys_write_file;
+	_syscalls[ SYS_read_file ]        = _sys_read_file;
 
 	// install our ISR
 
