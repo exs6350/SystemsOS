@@ -19,7 +19,7 @@
 void _sfs_init( void ) {
 
 	//Set file system to a point 1 gig into the RAM
-	fileSystem = (void *)0x40000000;
+	fileSystem = (void *)RAM_START_ADDRESS;
 
 	//Clean the memory where we are making the file system
 	_memset((uint8_t *)fileSystem, 0, sizeof(&fileSystem));
@@ -47,7 +47,7 @@ uint8_t _sfs_create(char* filename, uint8_t entry_type) {
 			continue; //Entry in use
 		}
 		char* c = filename;
-		for(int i = 0; i < MAX_NAME_LENGTH - 1 && *c != '\0'; i++) {
+		for(int i = 0; i < MAX_FILE_NAME_LENGTH - 1 && *c != '\0'; i++) {
 			entry->name[i] = *c;
 			entry->name[i+1] = '\0';
 			c++;
@@ -154,40 +154,35 @@ uint8_t* _sfs_read(char* filename) {
 */
 uint8_t _sfs_write(char* filename, uint16_t size, uint8_t* buffer) {
 	
-	for(int i = 0; i < NUM_ENTRIES; ++i) {
-		sfs_entry *entry = &fileSystem->entries[i];
-		
-		// Check for the right file
-		if(compare(filename, (char*)&entry->name) != 0)
-			continue;
-		
-		// Set the starting point for this file
-		if(fileSystem->current_location == -1)
-			entry->payload = ++fileSystem->current_location;
-		else
-			entry->payload = fileSystem->current_location++;
+	sfs_entry *entry = _sfs_exists(filename, FILE);
 
-		entry->size += size;
-		sfs_data* destination = &fileSystem->blocks[entry->payload];
-		uint16_t totalToWrite = size;
-		while( totalToWrite ) {
-			uint16_t writeSize = totalToWrite;
-			if( writeSize > DATA_BLOCK_SIZE - sizeof(uint8_t))
-				writeSize = DATA_BLOCK_SIZE - sizeof(uint8_t);
-			// Copy the data from the buffer to our file system
-			for(int i = 0; i < writeSize; ++i ) {
-				destination->data[i] = (uint8_t) *buffer;
-				buffer++;
-			}
-			totalToWrite -= writeSize;
-			if(totalToWrite) destination = &fileSystem->blocks[fileSystem->current_location++];
-		}
-		// We have finished writing
-		//break;
-		return 0;
+	if(entry == ENTRY_DNE) {
+		return -1; //Return -1 if file DNE
 	}
 
-	return 1;
+	// Set the starting point for this file
+	if(fileSystem->current_location == -1)
+		entry->payload = ++fileSystem->current_location;
+	else
+		entry->payload = fileSystem->current_location++;
+
+	entry->size += size;
+	sfs_data* destination = &fileSystem->blocks[entry->payload];
+	uint16_t totalToWrite = size;
+	while( totalToWrite ) {
+		uint16_t writeSize = totalToWrite;
+		if( writeSize > DATA_BLOCK_SIZE - sizeof(uint8_t))
+			writeSize = DATA_BLOCK_SIZE - sizeof(uint8_t);
+		// Copy the data from the buffer to our file system
+		for(int i = 0; i < writeSize; ++i ) {
+			destination->data[i] = (uint8_t) *buffer;
+			buffer++;
+		}
+		totalToWrite -= writeSize;
+		if(totalToWrite) destination = &fileSystem->blocks[fileSystem->current_location++];
+	}
+	// We have finished writing
+	return 0;
 }
 
 /*
@@ -218,6 +213,53 @@ uint8_t* _sfs_list( void ) {
 	return (uint8_t *)1;
 }
 
+/*
+** Checks if a file/directory exists
+**
+** Returns a pointer to the file/directory if it exists
+** Returns a pointer to address 512 megabytes in RAM if it does not
+** 	(This only seems to work at spaces in RAM that are empty...)
+*/
+sfs_entry* _sfs_exists( char* filename, uint8_t filetype ) {
+	for(int i = 0; i < NUM_ENTRIES; ++i) {
+		sfs_entry *entry = &fileSystem->entries[i];
+		
+		// Check for the right file
+		if(compare(filename, (char*)&entry->name) != 0 || \
+				entry->type != filetype)
+			continue;
+		
+		return entry;
+	}
+
+	//No file found;
+	return ENTRY_DNE;
+}
+
+/*
+** Return a pointer to the file system file table
+*/
 sfs_file_table* _get_fileSystem( void ) {
 	return fileSystem;
+}
+
+/*
+** Returns a pointer to the string holding the current directory
+*/
+char* get_directory( void ) {
+	return directory;
+}
+
+/*
+** Change the current directory
+**
+** Return 0 on success
+** Return anything else on failure
+*/
+uint8_t* _set_directory( char* new_dir ) {
+	//if directory exists...
+		directory = new_dir;
+		return 0;
+	//else
+		//return -1
 }

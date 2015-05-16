@@ -816,8 +816,8 @@ int len(char* buffer){
 Helper function to compare two strings or other null terminated buffer
 
 Returns 0 if the buffers are equal
-Returns <0 if the first buffer is greater
-Returns >0 if the second buffer is greater
+Returns <0 if the first buffer is greater (maybe, will not return 0)
+Returns >0 if the second buffer is greater (maybe, will not return 0)
 */
 int compare(char* buffer1, char* buffer2) {
 	int sizeDiff = len(buffer1) != len(buffer2);

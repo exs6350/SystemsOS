@@ -14,7 +14,8 @@
 
 //Constants
 
-#define MAX_NAME_LENGTH 32
+#define MAX_NAME_LENGTH 256
+#define MAX_FILE_NAME_LENGTH 32
 #define NUM_ENTRIES 512 //Maximum number of entries in file table
 
 //Size of the disk we are allocating (on RAM for now)
@@ -23,16 +24,24 @@
 #define DATA_BLOCK_SIZE 512
 #define NUM_BLOCKS (DISK_SIZE - (NUM_ENTRIES * sizeof(sfs_entry) + \
 	sizeof(uint8_t))) / DATA_BLOCK_SIZE
+#define RAM_START_ADDRESS 0x40000000
 
 //Entry types
 #define DIRECTORY 0
 #define FILE 1
 
+#define ENTRY_DNE (void *)0x2000000
+
+#define DIR_SEPERATOR /
+#define ROOT /
+#define CURRENT_DIR .
+#define PREV_DIR ..
+
 /*
 ** Structure representing a file entry in SFS
 */
 typedef struct sfs_entry {
-	uint8_t name[MAX_NAME_LENGTH];
+	char name[MAX_NAME_LENGTH]; //was uint8_t, no reason not to be char?
 	uint16_t size; //Remove after sizeOf method is made
 	uint16_t payload; //This is the first data block where data is stored
 	uint8_t type;
@@ -111,8 +120,29 @@ uint8_t _sfs_write(char* filename, uint16_t size, uint8_t* buffer);
 uint8_t* _sfs_list( void );
 
 /*
+** Checks if a file/directory exists
+**
+** Returns a pointer to the file/directory if it exists
+** Returns a pointer to address 0 in RAM if it does not
+*/
+sfs_entry* _sfs_exists( char* filename, uint8_t filetype );
+
+/*
 ** Return a pointer to the file system file table
 */
 sfs_file_table* _get_fileSystem( void );
+
+/*
+** Returns a pointer to the string holding the current directory
+*/
+char* _get_directory( void );
+
+/*
+** Change the current directory
+**
+** Return 0 on success
+** Return anything else on failure
+*/
+uint8_t* _set_directory( char* new_dir );
 
 #endif
