@@ -293,13 +293,13 @@ void _init( void ) {
 	c_puts("\n");
 
 	sfs_entry* exists = _sfs_exists("TEST.txt", FILE);
-	if(exists != ENTRY_DNE)
+	if(compare((char*)&exists->name,ROOT) != 0)
 		c_puts( "File exists...\n" );
 	else
 		c_puts( "uh oh...\n" );
 
 	sfs_entry* exists2 = _sfs_exists("TEST1234.txt", FILE);
-	if(exists2 == ENTRY_DNE)
+	if(compare((char*)&exists2->name,ROOT) == 0)
 		c_puts( "Ghost file DNE...\n" );
 	else
 		c_puts( "WTF?!...\n" );

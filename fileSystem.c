@@ -21,19 +21,36 @@ void _sfs_init( void ) {
 	//Set file system to a point 1 gig into the RAM
 	fileSystem = (void *)RAM_START_ADDRESS;
 
-	//Clean the memory where we are making the file system
+	//Make sure filesystem starts out clean
 	_memset((uint8_t *)fileSystem, 0, sizeof(&fileSystem));
 
+	sfs_entry* entry;
 	for(int i = 0; i < NUM_ENTRIES; i++) {
+		entry = &fileSystem->entries[i];
+
 		for(int j = 0; j < MAX_NAME_LENGTH; j++) {
-			fileSystem->entries[i]->name[j] = '\0';
-			fileSystem->entries[i]->size = 0;
-			fileSystem->entries[i]->payload = 0;
-			fileSystem->entries[i]->type = -1;
-		}
+			entry->name[j] = '\0';
+		}		
+		entry->size = 0;
+		entry->payload = 0;
+		entry->type = 0;
 	}
 
 	fileSystem->current_location = 0;
+
+	sfs_data* block;
+	for(int i = 0; i < NUM_BLOCKS; i++) {
+		block = &fileSystem->blocks[i];
+
+		block->next = 0;
+
+		for(int j = 0; j < DATA_BLOCK_SIZE - sizeof(uint8_t); j++) {
+			block->data[j] = 0;
+		}		
+	}
+
+	_sfs_create(ROOT, DIRECTORY);
+
 
 	// Set the location for the read buffer which is used to pass
 	// data back to the user from the file system
@@ -50,22 +67,28 @@ void _sfs_init( void ) {
 ** Create a new file with one data block or empty directory
 ** Return 0 on success, anything else on error
 */
-uint8_t _sfs_create(char* filename, uint8_t entry_type) {
+uint8_t _sfs_create(char* name, uint8_t entry_type) {
 	for(int i = 0; i < NUM_ENTRIES; ++i) {
 		sfs_entry* entry = &fileSystem->entries[i];
 		if( entry->name[0] != '\0' ) {
 			continue; //Entry in use
 		}
-		char* c = filename;
+		char* c = name;
 		for(int i = 0; i < MAX_FILE_NAME_LENGTH - 1 && *c != '\0'; i++) {
 			entry->name[i] = *c;
 			entry->name[i+1] = '\0';
 			c++;
 		}
-		entry->payload = fileSystem->current_location;
+		if(entry_type == FILE) {	
+			entry->payload = fileSystem->current_location;			
+			fileSystem->current_location++;
+		}
+		else {
+			entry->payload = 0;
+		}
+
 		entry->size = 0;
 		entry->type = entry_type;
-		fileSystem->current_location++;
 		
 		return 0;
 	}
@@ -79,7 +102,7 @@ uint8_t _sfs_delete(char* filename) {
 
 	sfs_entry *entry = _sfs_exists(filename, FILE);
 
-	if(entry == ENTRY_DNE) {
+	if(compare((char*)&entry->name,ROOT) == 0) {
 		return 1; //No file entries with that name
 	}
 
@@ -125,7 +148,7 @@ uint8_t* _sfs_read(char* filename) {
 
 	sfs_entry *entry = _sfs_exists(filename, FILE);
 
-	if(entry == ENTRY_DNE) {
+	if(compare((char*)&entry->name,ROOT) == 0) {
 		//char* buf = "test";
 		//return (uint8_t *) buf;
 		return result;
@@ -175,7 +198,7 @@ uint8_t _sfs_write(char* filename, uint16_t size, uint8_t* buffer) {
 	
 	sfs_entry *entry = _sfs_exists(filename, FILE);
 
-	if(entry == ENTRY_DNE) {
+	if(compare((char*)&entry->name,ROOT) == 0) {
 		return -1; //Return -1 if file DNE
 	}
 
@@ -251,8 +274,8 @@ sfs_entry* _sfs_exists( char* filename, uint8_t filetype ) {
 		return entry;
 	}
 
-	//No file found;
-	return ENTRY_DNE;
+	//No file found, return root
+	return &fileSystem->entries[0];
 }
 
 /*

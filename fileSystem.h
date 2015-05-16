@@ -27,13 +27,13 @@
 #define RAM_START_ADDRESS 0x40000000
 
 //Entry types
-#define DIRECTORY 0
-#define FILE 1
+#define DIRECTORY 1
+#define FILE 2
 
 #define ENTRY_DNE (void *)0x2000000
 
-#define DIR_SEPERATOR /
-#define ROOT /
+#define DIR_SEPERATOR '/'
+#define ROOT "/"
 #define CURRENT_DIR .
 #define PREV_DIR ..
 
@@ -96,7 +96,7 @@ void _sfs_init( void );
 ** Create a new file - do this
 ** Return 0 on success, anything else on error
 */
-uint8_t _sfs_create(char* filename, uint8_t entry_type);
+uint8_t _sfs_create(char* name, uint8_t entry_type);
 
 /*
 ** Delete an existing file - do this
