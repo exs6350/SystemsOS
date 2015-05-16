@@ -458,11 +458,13 @@ static void _sys_read_file( pcb_t *pcb ) {
 	
 	c_puts( "SYSCALL.C Reading from file...\n");
 	uint8_t *res = _sfs_read(filename);
+	c_puts("\n");
 	c_puts( (char *) res);
-	if(res != 0) c_puts("SYSCALL.C Read success\n");
+	c_puts("\n");
+	if(*res != 0) c_puts("SYSCALL.C Read success\n");
 	else c_puts("SYSCALL.C Read failed\n");
 
-	RET(pcb->context) = res;
+	RET(pcb->context) = (int) res;
 }
 
 /*
