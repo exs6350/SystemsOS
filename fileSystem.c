@@ -66,45 +66,44 @@ uint8_t _sfs_create(char* filename, uint8_t entry_type) {
 ** Delete an existing file or directory
 */
 uint8_t _sfs_delete(char* filename) {
-	for(int i = 0; i < NUM_ENTRIES; ++i) {
-		sfs_entry* entry = &fileSystem->entries[i];
-		if(compare(filename, (char*)&entry->name) != 0) {
-			continue; //File entry is not what we are looking for
-		}
 
-		/*if(file->payload == 0) {
-			return 0; //No data to delete, should never be the case
-		}*/
-		
-		if(entry->type == FILE) {
-			sfs_data* ptr = &fileSystem->blocks[entry->payload];
-			while(ptr) {
-				sfs_data* current = ptr;
-				if(ptr->next == 0) {
-					ptr = 0;
-				}
-				else {
-					ptr = (sfs_data*) &fileSystem->blocks[ptr->next];
-				}
-				_memset((uint8_t *) current, 0, DATA_BLOCK_SIZE);
-			}
-		}
-		else if(entry->type == DIRECTORY) {
-			for(int j = 0; j< NUM_ENTRIES; ++j) {
-				/*if(hashCommand(filename) == hashCommand((char*)&entry->filename)) {
-					continue; //File entry is not what we are looking for
-				}*/
-				//If file name starts with directory name, delete.
-			}
-		}
+	sfs_entry *entry = _sfs_exists(filename, FILE);
 
-		_memset((uint8_t *)&entry->name, 0, sizeof(&entry->name));
-		entry->name[0] = '\0';
-		entry->size = 0;
-
-		return 0;
+	if(entry == ENTRY_DNE) {
+		return 1; //No file entries with that name
 	}
-	return 1; //No file entries with that name
+
+	/*if(file->payload == 0) {
+		return 0; //No data to delete, should never be the case
+	}*/
+	
+	if(entry->type == FILE) {
+		sfs_data* ptr = &fileSystem->blocks[entry->payload];
+		while(ptr) {
+			sfs_data* current = ptr;
+			if(ptr->next == 0) {
+				ptr = 0;
+			}
+			else {
+				ptr = (sfs_data*) &fileSystem->blocks[ptr->next];
+			}
+			_memset((uint8_t *) current, 0, DATA_BLOCK_SIZE);
+		}
+	}
+	else if(entry->type == DIRECTORY) {
+		for(int j = 0; j< NUM_ENTRIES; ++j) {
+			/*if(hashCommand(filename) == hashCommand((char*)&entry->filename)) {
+				continue; //File entry is not what we are looking for
+			}*/
+			//If file name starts with directory name, delete.
+		}
+	}
+
+	_memset((uint8_t *)&entry->name, 0, sizeof(&entry->name));
+	entry->name[0] = '\0';
+	entry->size = 0;
+
+	return 0;
 }
 
 /*
@@ -113,50 +112,49 @@ uint8_t _sfs_delete(char* filename) {
 uint8_t* _sfs_read(char* filename) {
 	uint8_t* result = 0;
 	*result = 0;
-	for(int i = 0; i < NUM_ENTRIES; ++i) {
-		sfs_entry *entry = &fileSystem->entries[i];
-		// check for the right file
-		if(compare(filename, (char*)&entry->name) != 0)
-			continue;
-		
-		// If there is no data here, return nothing
-		//if(entry->payload == 0) return 0;
-		//Impossible now, every file has at least one data block
 
-		//sfs_read_buffer* read_buffer = &fileSystem->read_buffer;
-		sfs_data* source = &fileSystem->blocks[entry->payload];
-		
-		uint16_t totalToRead = entry->size;
-		uint8_t* buffer = result;
-		int emptyFile = 1;
-		while(source) {
-			uint16_t readSize = totalToRead;
-			if(readSize > DATA_BLOCK_SIZE - sizeof(uint8_t)) {
-				readSize = DATA_BLOCK_SIZE - sizeof(uint8_t);
-			}
-			// Copy the data out of the filesystem
-			for( int j=0; j < readSize; ++j ) {
-				emptyFile = 0;
-				*buffer = source->data[j];
-				buffer++;
-				//c_printf("\n%x", source->data[i]);
-			}
-			totalToRead -= readSize;
-			if(source->next) source = (sfs_data*) &fileSystem->blocks[source->next];
-			else source = 0;
-		}
-		// Use this for files that exist, but are empty. Using the
-		// space character means that the first character in the data
-		// can't be a space. We can use any other character though.
-		if(emptyFile) {
-			*buffer = ' ';
-			buffer++;
-		}
-		*buffer = '\0';
-		break;
+	sfs_entry *entry = _sfs_exists(filename, FILE);
+
+	if(entry == ENTRY_DNE) {
+		//char* buf = "test";
+		//return (uint8_t *) buf;
+		return result;
 	}
-	//char* buf = "test";
-	//return (uint8_t *) buf;
+
+	// If there is no data here, return nothing
+	//if(entry->payload == 0) return 0;
+	//Impossible now, every file has at least one data block
+
+	//sfs_read_buffer* read_buffer = &fileSystem->read_buffer;
+	sfs_data* source = &fileSystem->blocks[entry->payload];
+	
+	uint16_t totalToRead = entry->size;
+	uint8_t* buffer = result;
+	int emptyFile = 1;
+	while(source) {
+		uint16_t readSize = totalToRead;
+		if(readSize > DATA_BLOCK_SIZE - sizeof(uint8_t)) {
+			readSize = DATA_BLOCK_SIZE - sizeof(uint8_t);
+		}
+		// Copy the data out of the filesystem
+		for( int j=0; j < readSize; ++j ) {
+			emptyFile = 0;
+			*buffer = source->data[j];
+			buffer++;
+			//c_printf("\n%x", source->data[i]);
+		}
+		totalToRead -= readSize;
+		if(source->next) source = (sfs_data*) &fileSystem->blocks[source->next];
+		else source = 0;
+	}
+	// Use this for files that exist, but are empty. Using the
+	// space character means that the first character in the data
+	// can't be a space. We can use any other character though.
+	if(emptyFile) {
+		*buffer = ' ';
+		buffer++;
+	}
+	*buffer = '\0';
 	return result;
 }
 
