@@ -37,23 +37,24 @@ void _sfs_init( void ) {
 }
 
 /*
-** Create a new file with one data block
+** Create a new file with one data block or empty directory
 ** Return 0 on success, anything else on error
 */
-uint8_t _sfs_create(char* filename) {
+uint8_t _sfs_create(char* filename, uint8_t entry_type) {
 	for(int i = 0; i < NUM_ENTRIES; ++i) {
-		sfs_file* file = &fileSystem->files[i];
-		if( file->filename[0] != '\0' ) {
-			continue; //File entry in use
+		sfs_entry* entry = &fileSystem->entries[i];
+		if( entry->name[0] != '\0' ) {
+			continue; //Entry in use
 		}
 		char* c = filename;
-		for(int i = 0; i < FILENAME_LENGTH - 1 && *c != '\0'; i++) {
-			file->filename[i] = *c;
-			file->filename[i+1] = '\0';
+		for(int i = 0; i < MAX_NAME_LENGTH - 1 && *c != '\0'; i++) {
+			entry->name[i] = *c;
+			entry->name[i+1] = '\0';
 			c++;
 		}
-		file->payload = fileSystem->current_location;
-		file->size = 0;
+		entry->payload = fileSystem->current_location;
+		entry->size = 0;
+		entry->type = entry_type;
 		fileSystem->current_location++;
 		
 		return 0;
@@ -62,32 +63,45 @@ uint8_t _sfs_create(char* filename) {
 }
 
 /*
-** Delete an existing file - do this
+** Delete an existing file or directory
 */
 uint8_t _sfs_delete(char* filename) {
 	for(int i = 0; i < NUM_ENTRIES; ++i) {
-		sfs_file* file = &fileSystem->files[i];
-		if(hashCommand(filename) != hashCommand((char*)&file->filename)) {
+		sfs_entry* entry = &fileSystem->entries[i];
+		if(compare(filename, (char*)&entry->name) != 0) {
 			continue; //File entry is not what we are looking for
 		}
-		_memset((uint8_t *)&file->filename, 0, sizeof(&file->filename));
-		file->size = 0;
 
 		/*if(file->payload == 0) {
 			return 0; //No data to delete, should never be the case
 		}*/
-
-		sfs_data* ptr = &fileSystem->blocks[file->payload];
-		while(ptr) {
-			sfs_data* current = ptr;
-			if(ptr->next == 0) {
-				ptr = 0;
+		
+		if(entry->type == FILE) {
+			sfs_data* ptr = &fileSystem->blocks[entry->payload];
+			while(ptr) {
+				sfs_data* current = ptr;
+				if(ptr->next == 0) {
+					ptr = 0;
+				}
+				else {
+					ptr = (sfs_data*) &fileSystem->blocks[ptr->next];
+				}
+				_memset((uint8_t *) current, 0, DATA_BLOCK_SIZE);
 			}
-			else {
-				ptr = (sfs_data*) &fileSystem->blocks[ptr->next];
-			}
-			_memset((uint8_t *) current, 0, DATA_BLOCK_SIZE);
 		}
+		else if(entry->type == DIRECTORY) {
+			for(int j = 0; j< NUM_ENTRIES; ++j) {
+				/*if(hashCommand(filename) == hashCommand((char*)&entry->filename)) {
+					continue; //File entry is not what we are looking for
+				}*/
+				//If file name starts with directory name, delete.
+			}
+		}
+
+		_memset((uint8_t *)&entry->name, 0, sizeof(&entry->name));
+		entry->name[0] = '\0';
+		entry->size = 0;
+
 		return 0;
 	}
 	return 1; //No file entries with that name
@@ -98,10 +112,11 @@ uint8_t _sfs_delete(char* filename) {
 */
 uint8_t* _sfs_read(char* filename) {
 	uint8_t* result = 0;
+	*result = 0;
 	for(int i = 0; i < NUM_ENTRIES; ++i) {
-		sfs_file *entry = &fileSystem->files[i];
+		sfs_entry *entry = &fileSystem->entries[i];
 		// check for the right file
-		if(hashCommand(filename) != hashCommand((char*)&entry->filename)) 
+		if(compare(filename, (char*)&entry->name) != 0)
 			continue;
 		
 		// If there is no data here, return nothing
@@ -113,14 +128,16 @@ uint8_t* _sfs_read(char* filename) {
 		
 		uint16_t totalToRead = entry->size;
 		uint8_t* buffer = result;
+		int emptyFile = 1;
 		while(source) {
 			uint16_t readSize = totalToRead;
 			if(readSize > DATA_BLOCK_SIZE - sizeof(uint8_t)) {
 				readSize = DATA_BLOCK_SIZE - sizeof(uint8_t);
 			}
 			// Copy the data out of the filesystem
-			for( int i=0; i < readSize; ++i ) {
-				*buffer = source->data[i];
+			for( int j=0; j < readSize; ++j ) {
+				emptyFile = 0;
+				*buffer = source->data[j];
 				buffer++;
 				//c_printf("\n%x", source->data[i]);
 			}
@@ -128,7 +145,14 @@ uint8_t* _sfs_read(char* filename) {
 			if(source->next) source = (sfs_data*) &fileSystem->blocks[source->next];
 			else source = 0;
 		}
-		buffer = '\0';
+		// Use this for files that exist, but are empty. Using the
+		// space character means that the first character in the data
+		// can't be a space. We can use any other character though.
+		if(emptyFile) {
+			*buffer = ' ';
+			buffer++;
+		}
+		*buffer = '\0';
 		break;
 	}
 	//char* buf = "test";
@@ -142,10 +166,10 @@ uint8_t* _sfs_read(char* filename) {
 uint8_t _sfs_write(char* filename, uint16_t size, uint8_t* buffer) {
 	
 	for(int i = 0; i < NUM_ENTRIES; ++i) {
-		sfs_file *entry = &fileSystem->files[i];
+		sfs_entry *entry = &fileSystem->entries[i];
 		
 		// Check for the right file
-		if(hashCommand(filename) != hashCommand((char*)&entry->filename)) 
+		if(compare(filename, (char*)&entry->name) != 0)
 			continue;
 		
 		// Set the starting point for this file

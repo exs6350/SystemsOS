@@ -783,52 +783,6 @@ void hello( void ) {
 	exit();
 }
 
-int strlen(char* str) {
-	char* strptr = str;
-
-	int counter = 0;
-
-	while(strptr != '\0') {
-		counter++;
-		if(counter >= 255) {
-			break;
-		}
-		strptr++;
-	}
-
-	return counter; 
-	
-}
-
-int strcmp(char* str1, char* str2) {
-	write( FD_CONSOLE, "0123456789", strlen(str1));
-	write( FD_CONSOLE, "0123456789", strlen(str2));
-
-	if(strlen(str1) != strlen(str2)) {
-		return 2;
-	}	
-
-	char* strptr1 = str1;
-	char* strptr2 = str2;
-
-	while(strptr1 != '\0' || strptr2 != '\0') {
-
-		write( FD_CONSOLE, " ", 0);
-		write( FD_CONSOLE, strptr1, 1);
-		write( FD_CONSOLE, strptr2, 1);
-		write( FD_CONSOLE, " ", 0);
-		if(strptr1 != strptr2) {
-			
-			return 1;
-		}
-
-		strptr1++;
-		strptr2++;
-	}
-
-	return 0;
-}
-
 /*
 Simple hash to figure out what command is entered in shell
 */
@@ -842,6 +796,47 @@ int hashCommand(char* commandBuffer){
 	} 
 
 	return hash;
+}
+
+/*
+Helper function to get the length of a string or other null terminated buffer
+*/
+int len(char* buffer){
+	char* temp = buffer;
+	int len = 0;
+	while (*temp != '\0') {
+		len++;
+		temp++;
+		//write( FD_CONSOLE, (char*)hash, 0);
+	} 
+	return len;
+}
+
+/*
+Helper function to compare two strings or other null terminated buffer
+
+Returns 0 if the buffers are equal
+Returns <0 if the first buffer is greater
+Returns >0 if the second buffer is greater
+*/
+int compare(char* buffer1, char* buffer2) {
+	int sizeDiff = len(buffer1) != len(buffer2);
+	
+	if(sizeDiff != 0) {
+		return sizeDiff;
+	}
+	else {
+		char* temp1 = buffer1;
+		char* temp2 = buffer2;
+		while (*temp1 != '\0') {
+			if(*temp1 != *temp2) {
+				return (int) *temp1 - (int) *temp2;
+			}
+			temp1++;
+			temp2++;
+		}
+		return 0;
+	}
 }
 
 void shell( void ) {
@@ -903,8 +898,14 @@ void shell( void ) {
 		int doneCommand = 0;
 		int doneParam1 = 0;
 		int doneParam2 = 0;
+		int inTextBlock = 0;
 		for( int i = 0; i < resBufIndex; ++i ) {
-			if( resultBuffer[i] == ' ' ) {
+			if( resultBuffer[i] == '\'') {
+				if(inTextBlock) inTextBlock = 0;
+				else inTextBlock = 1;
+				continue;
+			}
+			if( resultBuffer[i] == ' ' && !inTextBlock) {
 				if( !doneCommand ) doneCommand = 1;
 				else if( !doneParam1 ) doneParam1 = 1;
 				else if( !doneParam2 ) doneParam2 = 1;
@@ -953,24 +954,77 @@ void shell( void ) {
 		//checkCommand(resultBuffer
 
 		//easier way of doing it hash the command and we can figure out what it is
-		int hash = hashCommand(commandBuffer);
+		//int hash = hashCommand(commandBuffer);
+
 		int16_t pid;
+
+		if(compare(commandBuffer, "ls") == 0) {
+			pid = spawnp(lsCommand, PRIO_USER_HIGH);			
+			if(pid < 0){
+				write(FD_CONSOLE, "ls command spawn() has failed\n", 0);
+				exit();
+			}
+		} else if( compare(commandBuffer, "hello") == 0) {
+			pid = spawnp(helloCommand, PRIO_USER_HIGH);
+			if( pid < 0) {
+				write( FD_CONSOLE, "init, spawn() hello failed\n", 0);
+				exit();
+			}
+		} else if(compare(commandBuffer, "cd") == 0) {
+
+		} else if(compare(commandBuffer, "mkdir") == 0) {
+
+		} else if(compare(commandBuffer, "mkfile") == 0) {
+
+			write(FD_SIO, "Creating file: ", 0);
+			write(FD_SIO, paramBuffer, 0);
+			write(FD_SIO, "\n", 0);
+			int res = create_file(paramBuffer);
+			if(res == 0) write(FD_SIO, "Created file!\n", 0);
+			else write( FD_SIO, "Failed to create file\n", 0);
+
+		} else if(compare(commandBuffer, "rm") == 0) {
+
+			write(FD_SIO, "Deleting file: ", 0);
+			write(FD_SIO, paramBuffer, 0);
+			write(FD_SIO, "\n", 0);
+			int res = delete_file(paramBuffer);
+			if(res == 0) write(FD_SIO, "Deleted file!\n", 0);
+			else write( FD_SIO, "Failed to delete file\n", 0);
+
+		} else if(compare(commandBuffer, "write") == 0) {
+	
+			write(FD_SIO, "Writing to file: ", 0);
+			write(FD_SIO, paramBuffer, 0);
+			write(FD_SIO, "\n", 0);
+			int res = write_file(paramBuffer, pBufIndex2+1, paramBuffer2);
+			if(res == 0) write(FD_SIO, "Write success!\n", 0);
+			else write( FD_SIO, "Failed to write\n", 0);
+
+		} else if(compare(commandBuffer, "read") == 0) {
+			
+			write(FD_SIO, "Reading file: ", 0);
+			write(FD_SIO, paramBuffer, 0);
+			write(FD_SIO, "\n", 0);
+			char* res = (char *) read_file(paramBuffer);
+			if(*res == ' ') {
+				write(FD_SIO, "File is empty\n", 0);
+			}
+			else if(*res != 0) { 
+				write(FD_SIO, res, 0);
+				write(FD_SIO, "\n", 0);
+			} else write(FD_SIO, "No such file.\n", 0);
+		}
+		
+/*
 		switch(hash) {
 			//ls command
 			case 223:
-				pid = spawnp(lsCommand, PRIO_USER_HIGH);			
-				if(pid < 0){
-					write(FD_CONSOLE, "ls command spawn() has failed\n", 0);
-					exit();
-				}
+
 				break;
 			//hello command
 			case 532:
-				pid = spawnp(helloCommand, PRIO_USER_HIGH);
-				if( pid < 0) {
-					write( FD_CONSOLE, "init, spawn() hello failed\n", 0);
-					exit();
-				}
+
 				break;
 			//cd command
 			case 199:
@@ -992,7 +1046,7 @@ void shell( void ) {
 				write(FD_CONSOLE, "\n", 0);	
 				break;
 		}
-
+*/
 		// Reset the parameters and wait for the next command to be entered
 		gotCommand = 0;
 		resBufIndex = -1;
