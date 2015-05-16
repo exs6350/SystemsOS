@@ -1007,10 +1007,13 @@ void shell( void ) {
 			write(FD_SIO, paramBuffer, 0);
 			write(FD_SIO, "\n", 0);
 			char* res = (char *) read_file(paramBuffer);
-			if(*res != 0) { 
+			if(*res == ' ') {
+				write(FD_SIO, "File is empty\n", 0);
+			}
+			else if(*res != 0) { 
 				write(FD_SIO, res, 0);
 				write(FD_SIO, "\n", 0);
-			} else write( FD_SIO, "Failed to read file, or file is empty\n", 0);
+			} else write(FD_SIO, "No such file.\n", 0);
 		}
 		
 /*

@@ -99,6 +99,7 @@ uint8_t _sfs_delete(char* filename) {
 		}
 
 		_memset((uint8_t *)&entry->name, 0, sizeof(&entry->name));
+		entry->name[0] = '\0';
 		entry->size = 0;
 
 		return 0;
@@ -111,6 +112,7 @@ uint8_t _sfs_delete(char* filename) {
 */
 uint8_t* _sfs_read(char* filename) {
 	uint8_t* result = 0;
+	*result = 0;
 	for(int i = 0; i < NUM_ENTRIES; ++i) {
 		sfs_entry *entry = &fileSystem->entries[i];
 		// check for the right file
@@ -126,14 +128,16 @@ uint8_t* _sfs_read(char* filename) {
 		
 		uint16_t totalToRead = entry->size;
 		uint8_t* buffer = result;
+		int emptyFile = 1;
 		while(source) {
 			uint16_t readSize = totalToRead;
 			if(readSize > DATA_BLOCK_SIZE - sizeof(uint8_t)) {
 				readSize = DATA_BLOCK_SIZE - sizeof(uint8_t);
 			}
 			// Copy the data out of the filesystem
-			for( int i=0; i < readSize; ++i ) {
-				*buffer = source->data[i];
+			for( int j=0; j < readSize; ++j ) {
+				emptyFile = 0;
+				*buffer = source->data[j];
 				buffer++;
 				//c_printf("\n%x", source->data[i]);
 			}
@@ -141,7 +145,14 @@ uint8_t* _sfs_read(char* filename) {
 			if(source->next) source = (sfs_data*) &fileSystem->blocks[source->next];
 			else source = 0;
 		}
-		buffer = '\0';
+		// Use this for files that exist, but are empty. Using the
+		// space character means that the first character in the data
+		// can't be a space. We can use any other character though.
+		if(emptyFile) {
+			*buffer = ' ';
+			buffer++;
+		}
+		*buffer = '\0';
 		break;
 	}
 	//char* buf = "test";
