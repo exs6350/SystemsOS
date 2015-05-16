@@ -23,6 +23,17 @@ void _sfs_init( void ) {
 
 	//Clean the memory where we are making the file system
 	_memset((uint8_t *)fileSystem, 0, sizeof(&fileSystem));
+	sfs_entry* e;
+	for(int i = 0; i < NUM_ENTRIES; i++) {
+		e = &fileSystem->entries[i];
+		for(int j = 0; j < MAX_NAME_LENGTH; j++) {
+			e->name[j] = '\0';
+		}
+		e->size = 0;
+		e->payload = 0;
+		e->type = -1;
+	}
+
 	fileSystem->current_location = 0;
 
 	// Set the location for the read buffer which is used to pass
@@ -207,26 +218,26 @@ uint8_t _sfs_write(char* filename, uint16_t size, uint8_t* buffer) {
 */
 uint8_t* _sfs_list( void ) {
 
-	/*uint8_t* result = 0;
+	uint8_t* result = 0;
+	*result = 0;
 
 	uint8_t* buffer = result;
 	for(int i = 0; i < NUM_ENTRIES; ++i) {
-		sfs_file *entry = &fileSystem->files[i];
-		if(entry->filename[0] != '\0') {
-			for(int j = 0; entry->filename[j] != '\0'; j++) {
-				c_puts("IN THE LOOP!");
-				*buffer = entry->filename[j];
+		sfs_entry *entry = &fileSystem->entries[i];
+		if(entry->name[0] != 0) {
+//			c_puts("-A");
+			c_printf("\n%x\n", entry->name[0]);
+			for(int j = 0; entry->name[j] != '\0'; j++) {
+				*buffer = entry->name[j];
 				buffer++;
-				//filename++;
-				//c_printf("\n%x", *filename);
 			}
 			*buffer = '\n';
 			buffer++;
 		}
 	}
 	*buffer = '\0';
-	return result;*/
-	return (uint8_t *)1;
+	return result;
+//	return (uint8_t *)1;
 }
 
 sfs_file_table* _get_fileSystem( void ) {

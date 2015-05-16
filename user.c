@@ -959,11 +959,8 @@ void shell( void ) {
 		int16_t pid;
 
 		if(compare(commandBuffer, "ls") == 0) {
-			pid = spawnp(lsCommand, PRIO_USER_HIGH);			
-			if(pid < 0){
-				write(FD_CONSOLE, "ls command spawn() has failed\n", 0);
-				exit();
-			}
+			char* res = (char *) list_files();
+			write(FD_SIO, res, 0);
 		} else if( compare(commandBuffer, "hello") == 0) {
 			pid = spawnp(helloCommand, PRIO_USER_HIGH);
 			if( pid < 0) {
