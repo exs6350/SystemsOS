@@ -24,45 +24,113 @@ Notes:
 Host side endpoint descriptor and queue
 */
 struct usb_host_endpoint{
-	//endpoint information held here
+	/*endpoint information held here*/
 	struct usb_endpoint_descriptor desc;
-	//The USB address of this endpoint
+	/*The USB address of this endpoint*/
 	uint32_t bEndpointAddress;
-	//The type of endpoint
+	/*The type of endpoint*/
 	uint32_t bmAttributes;
-	//Maximum size of packet transfer
+	/*Maximum size of packet transfer*/
 	uint16_t wMaxPacketSize;
-	//If endpoint is interrupt this is the interval setting in ms
+	/*If endpoint is interrupt this is the interval setting in ms*/
 	uint16_t bInterval;
 };
 
-struct usb_interface {
-	//Array of interfaces containing alternate settings 
-	struct usb_host_interface *altsetting;
-	//The number of alternate settings pointed to by altsettings
-	uint16_t num_altsetting;
-	//A pointer into the array altsetting, this is the current setting for the interface
-	struct usb_host_interface *cur_altsetting;
-	//The minor number assigned by the USB core ex 2.1 minor num is 1
-	uint8_t minor;
+struct usb_endpoint_descriptor{
+	int8_t bLength;
+	int8_t bDesciptorType;
+	int8_t bEndpointAddress;
+	int8_t bmAttributes;
+	int16_t wMaxPacketSize;
+	int8_t bInterval;
+};
+
+struct usb_device_descriptor{
+	int8_t bLength;
+	int8_t bDescriptorType;
+	int16_t bcdUSB;
+	int8_t bDeviceClass;
+	int8_t bDeviceSubClass;
+	int8_t bDeviceProtocol;
+	int8_t bMaxPacketSize0;
+	int16_t idVendor;
+	int16_t idProduct;
+	int16_t bcdDevice;
+	int8_t iManufacturer;
+	int8_t iProduct;
+	int8_t iSerialNumber;
+	int8_t bNumConfigurations;
 }
+
+/*
+Host side wrapper for one interface setting descriptor
+*/
+struct usb_host_interface{
+	struct usb_interface_descriptor desc;
+	/*array of endpoints associated with this interface setting */
+	struct usb_host_endpoint *endpoint;
+};
+
+struct usb_interface {
+	/*Array of interfaces containing alternate settings*/
+	struct usb_host_interface *altsetting;
+	/*The number of alternate settings pointed to by altsettings*/
+	uint16_t num_altsetting;
+	/*A pointer into the array altsetting, this is the current setting for the interface*/
+	struct usb_host_interface *cur_altsetting;
+	/*The minor number assigned by the USB core ex 2.1 minor num is 1*/
+	uint8_t minor;
+	/*interface specific device into*/
+	struct device *dev;
+	struct device *usb_dev;
+};
 
 struct usb_host_config{
 	struct usb_config_descriptor desc;	
 
-	//List of interface association descriptions in this configuration 
-	struct usb_interface_assoc_descriptor *intf_assoc[USB_MAXIADS];
-	//The interfaces associated with this config
+	/*The interfaces associated with this config*/
 	struct usb_interface *interface[USB_MAXINTERFACES];
-}
+};
 
 struct usb_device{
 
-}
+};
+
+/*Allocated per bus*/
+struct usb_bus{
+	/*host/master side hardware*/
+	struct device *controller;
+	/*bus number*/
+	int32_t busnum;
+	/*PCI slot name*/
+	int8_t *bus_name;
+	/*controller uses dma?*/
+	uint8_t uses_dma;
+	/*uses pio for control device*/
+	uint8_t uses_pio_for_control;
+	/*0 or number of OTG/HNP port*/
+	uint8_t otg_port;
+	/*next open device number in round-robin allocation*/
+	int32_t devnum_next;
+	/*device address allocation map*/
+	struct usb_devmap devmap;
+	/*root hub*/
+	struct usb_device *root_hub;
+	/*companion EHCI bus*/
+	struct usb_bus *hs_companion;
+	/*how much time reserved for periodic requests*/
+	int32_t bandwidth_allocated;
+	/*number of isoc requests*/
+	int32_t bandwidth_isoc_reqs;
+	/*Number of interrupt requests*/
+	int32_t bandwidth_int_reqs;
+	/*remaining root-hub ports*/
+	uint32_t resuming_ports;
+};
 
 static inline struct usb_device *interface_to_usbdev(struct usb_interface *intf){
 	return to_usb_device(intf->dev.parent);
-}
+};
 
 
 struct urb{
@@ -100,7 +168,7 @@ struct urb{
 	int32_t number_of_packets;
 	//Allows a single urb to define multiple iso transfers at once (iso urb)
 	struct usb_iso_packet_descriptor iso_frame_desc[0];	
-}
+};
 
 //Functions used to initialize the pipe of a urb structure
 uint32_t usb_sndctrlpipe(struct usb_device *dev, uint32_t endpoint);
@@ -145,6 +213,3 @@ void usb_kill_urb(struct urb *urb);
 
 //urb completion handler
 void (*usb_complete_t)(struct urb *, struct pt_regs *);
-
-static struct usb_device_id catc_id_table [] = {
-{USB_DEVICE() } };

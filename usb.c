@@ -14,11 +14,11 @@ static struct usb_class_driver class;
 static uint8_t data_transfer_buffer[MAX_PKT_SIZE];
 
 /*for later use with file system to open file*/
-static int usb_open(struct inode *i, struct file *f){
+static int usb_open(void){
 }
 
 /*For later use with file system to close file*/
-static int usb_close(struct inode *i, struct file *f){
+static int usb_close(void){
 }
 
 static int32_t usb_read(struct file *f, uint8_t *buffer, int32_t count){
@@ -27,20 +27,16 @@ static int32_t usb_read(struct file *f, uint8_t *buffer, int32_t count){
 
 	retval = usb_bulk_msg(device, usb_rcvbulkpipe(device, BULK_EP_IN), data_trasfer_buffer, MAX_PKT_SIZE, &read_count, 5000);
 	if(retval){
-		/*print out the data here*/
-		return retval;
+		/*print out the data here stored in buffer*/
+		
 	}
 }
 
-static int32_t usb_write(struct file *f, int8_t *buffer, int32_t count){
+static int32_t usb_write(void){
 	int32_t retval;
 	int32_t wrote_count;
 
 	retval = usb_bulk_msg(device, usb_sndbulkpipe(device, BULK_EP_OUT), data_transfer_buffer, 
-	
-}
-
-static struct file_operations fops = {
 	
 }
 
@@ -53,8 +49,8 @@ static int usb_probe(struct usb_interface *interface, const struct usb_device_id
 
 static void usb_disconnect(struct usb_interface *interface){
 	/*This function should be called when we disconnect our usb
-	*/
-	printk(KERN_INFO "Usb drive has been removed\n");
+	
+	printk(KERN_INFO "Usb drive has been removed\n");*/
 }
 
 /* This only contains the specific id for the HP usb drives in the lab*/
