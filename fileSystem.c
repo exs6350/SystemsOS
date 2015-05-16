@@ -23,6 +23,16 @@ void _sfs_init( void ) {
 
 	//Clean the memory where we are making the file system
 	_memset((uint8_t *)fileSystem, 0, sizeof(&fileSystem));
+
+	for(int i = 0; i < NUM_ENTRIES; i++) {
+		for(int j = 0; j < MAX_NAME_LENGTH; j++) {
+			fileSystem->entries[i]->name[j] = '\0';
+			fileSystem->entries[i]->size = 0;
+			fileSystem->entries[i]->payload = 0;
+			fileSystem->entries[i]->type = -1;
+		}
+	}
+
 	fileSystem->current_location = 0;
 
 	// Set the location for the read buffer which is used to pass
@@ -271,4 +281,16 @@ uint8_t* _set_directory( char* new_dir ) {
 		return 0;
 	//else
 		//return -1
+}
+
+/**
+** Update a filename to match the current directory
+**/
+char* _adjust_filename( char* filename ) {
+	/*char*	
+
+	if(*filename != DIR_SEPERATOR) {
+	}
+	return*/
+	return filename;
 }

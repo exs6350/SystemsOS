@@ -145,4 +145,9 @@ char* _get_directory( void );
 */
 uint8_t* _set_directory( char* new_dir );
 
+/**
+** Update a filename to match the current directory
+**/
+char* _adjust_filename( char* filename );
+
 #endif
