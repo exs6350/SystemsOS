@@ -842,10 +842,10 @@ int compare(char* buffer1, char* buffer2) {
 void shell( void ) {
 
 	char readBuffer[5];
-	char resultBuffer[100];
+	char resultBuffer[2048];
 	char commandBuffer[20];
 	char paramBuffer[20];
-	char paramBuffer2[20];
+	char paramBuffer2[1024];
 	int resBufIndex = -1;
 	int gotCommand = 0; // 0 for no, 1 for yes
 	int comBufIndex = 0;
@@ -877,8 +877,6 @@ void shell( void ) {
 					resultBuffer[resBufIndex] = readBuffer[i];
 					
 				}
-			} else { // Sleep if we didn't get any characters, Though this will give the idle process time to run, which is kind of bad becuase it puts characters on the screen, though we can change that.
-				//sleep( SECONDS_TO_MS(.5) );
 			}
 		}
 
@@ -891,10 +889,9 @@ void shell( void ) {
 		}
 	
 
-		// This code splits the entered command into at most 3 space separated words.
-		// The first word is assumed to be the command, and the other 2 are parameters.
-		// This probably could be split into its own function as I started to do above,
-		// but that will require some parameter passing.	
+		// This code splits the entered command into at most 4 space separated words.
+		// The first word is assumed to be the command and the other 2 are parameters.
+
 		int doneCommand = 0;
 		int doneParam1 = 0;
 		int doneParam2 = 0;
@@ -994,12 +991,21 @@ void shell( void ) {
 			write(FD_SIO, "Writing to file: ", 0);
 			write(FD_SIO, paramBuffer, 0);
 			write(FD_SIO, "\n", 0);
-			int res = write_file(paramBuffer, pBufIndex2+1, paramBuffer2);
+			int res = write_file(paramBuffer, pBufIndex2+1, paramBuffer2, 0);
 			if(res == 0) write(FD_SIO, "Write success!\n", 0);
 			else write( FD_SIO, "Failed to write\n", 0);
 
+		} else if(compare(commandBuffer, "writea") == 0) {
+	
+			write(FD_SIO, "Appending to file: ", 0);
+			write(FD_SIO, paramBuffer, 0);
+			write(FD_SIO, "\n", 0);
+			int res = write_file(paramBuffer, pBufIndex2+1, paramBuffer2, 1);
+			if(res == 0) write(FD_SIO, "Append success!\n", 0);
+			else write( FD_SIO, "Failed to append\n", 0);
+
 		} else if(compare(commandBuffer, "read") == 0) {
-			
+
 			write(FD_SIO, "Reading file: ", 0);
 			write(FD_SIO, paramBuffer, 0);
 			write(FD_SIO, "\n", 0);
@@ -1013,37 +1019,6 @@ void shell( void ) {
 			} else write(FD_SIO, "No such file.\n", 0);
 		}
 		
-/*
-		switch(hash) {
-			//ls command
-			case 223:
-
-				break;
-			//hello command
-			case 532:
-
-				break;
-			//cd command
-			case 199:
-				pid = spawnp(cdCommand, PRIO_USER_HIGH);
-				if( pid < 0 ) {
-					write( FD_CONSOLE, "cd command spawn() has failed\n",0);
-					exit();
-				}
-				break;
-			//mkdir command
-			case 535:
-				break;
-			//mkfile command
-			case 632:
-				break;
-			default:
-				write(FD_CONSOLE, "command not recognized: ", 0);
-				//write(FD_CONSOLE, (char*)hash, 0);
-				write(FD_CONSOLE, "\n", 0);	
-				break;
-		}
-*/
 		// Reset the parameters and wait for the next command to be entered
 		gotCommand = 0;
 		resBufIndex = -1;

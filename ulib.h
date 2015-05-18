@@ -163,37 +163,54 @@ int32_t get_system_info( uint32_t what );
 
 
 /*
+** create_file - create a file in the file system
 **
+** usage:	n = create_file( char* filename )
 **
-**
-**
+** returns:
+**      0 for success, 1 for failure
 */
 uint8_t create_file( char* filename );
 
 /*
+** delete_file - delete a file in the file system
 **
+** usage:	n = delete_file( char* filename )
 **
-**
-**
+** returns:
+**      0 for success, 1 for failure
 */
 uint8_t delete_file( char* filename );
 
 /*
+** write_file - write to a file in the file system
 **
+** usage:	n = write_file( char* filename, uint8_t size, char* buf, 
+**			int doAppend )
 **
-**
-**
+** returns:
+**      0 for success, 1 for failure
 */
-uint8_t write_file( char* filename, uint16_t size, char* buffer );
+uint8_t write_file( char* filename, uint16_t size, char* buffer, int doAppend );
 
 /*
+** read_file - reads from a file in the file system
 **
+** usage:	n = read_file( char* filename )
 **
-**
-**
+** returns:
+**      0 for failure, or pointer to data
 */
 uint8_t read_file( char* filename );
 
+/*
+** list_files - list the files in the file system
+**
+** usage:	n = list_files( void )
+**
+** returns:
+**      pointer for string result
+*/
 uint8_t list_files( void );
 
 /*

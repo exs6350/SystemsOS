@@ -244,13 +244,6 @@ uint8_t* _sfs_read(char* f_name) {
 		return result;
 	}
 
-	c_puts("R:");
-	c_puts((char*)&entry->name);
-	c_puts("...");
-	c_puts(ROOT);
-	c_printf("...%x", compare((char*)&entry->name,ROOT));
-	c_puts("\n");
-
 	// If there is no data here, return nothing
 	//if(entry->payload == 0) return 0;
 	//Impossible now, every file has at least one data block
@@ -291,7 +284,7 @@ uint8_t* _sfs_read(char* f_name) {
 /*
 ** Write to an existing file
 */
-uint8_t _sfs_write(char* f_name, uint16_t size, uint8_t* buffer) {
+uint8_t _sfs_write(char* f_name, uint16_t size, uint8_t* buffer, int doAppend) {
 	
 	char* filename = _adjust_filename(f_name);
 
@@ -301,31 +294,30 @@ uint8_t _sfs_write(char* f_name, uint16_t size, uint8_t* buffer) {
 		return 1; //Return 1 if file DNE
 	}
 
-	c_puts("W:");
-	c_puts((char*)&entry->name);
-	c_puts("...");
-	c_puts(ROOT);
-	c_printf("...%x", compare((char*)&entry->name,ROOT));
-	c_puts("\n");
-	
-	// Set the starting point for this file
-	if(fileSystem->current_location == -1)
-		entry->payload = ++fileSystem->current_location;
-	else
-		entry->payload = fileSystem->current_location++;
-
-	entry->size += size;
+	int writeSpot = 0;
 	sfs_data* destination = &fileSystem->blocks[entry->payload];
+	if(doAppend) {
+		writeSpot = entry->size -1;
+		entry->size += size;
+		// Move to the right block
+		// We don't actually use multiple blocks yet
+		//uint8_t destination->next
+	}
+	else { // Overwrite what is there.
+		entry->size = size;
+	}
 	uint16_t totalToWrite = size;
 	while( totalToWrite ) {
 		uint16_t writeSize = totalToWrite;
-		if( writeSize > DATA_BLOCK_SIZE - sizeof(uint8_t))
+		if( writeSize + writeSpot > DATA_BLOCK_SIZE - sizeof(uint8_t))
 			writeSize = DATA_BLOCK_SIZE - sizeof(uint8_t);
 		// Copy the data from the buffer to our file system
-		for(int i = 0; i < writeSize; ++i ) {
-			destination->data[i] = (uint8_t) *buffer;
+		for(int i=0; i < writeSize; ++i ) {
+			destination->data[writeSpot] = (uint8_t) *buffer;
 			buffer++;
+			writeSpot++;
 		}
+		writeSpot = 0;
 		totalToWrite -= writeSize;
 		if(totalToWrite) destination = &fileSystem->blocks[fileSystem->current_location++];
 	}
