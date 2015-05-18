@@ -30,8 +30,6 @@
 #define DIRECTORY 1
 #define FILE 2
 
-#define ENTRY_DNE (void *)0x2000000
-
 #define DIR_SEPERATOR '/'
 #define ROOT "/"
 #define CURRENT_DIR .
@@ -70,6 +68,7 @@ typedef struct sfs_file_table {
 	sfs_entry entries[NUM_ENTRIES];
 	uint8_t current_location; //Remove once findFreeSpace is implemented
 	sfs_data blocks[NUM_BLOCKS];
+	char directory[MAX_NAME_LENGTH - MAX_FILE_NAME_LENGTH - 1];
 } sfs_file_table;
 
 
@@ -79,12 +78,6 @@ typedef struct sfs_file_table {
 ** DO NOT REFERENCE BEFORE RUNNING sfs_init();
 */
 sfs_file_table* fileSystem;
-
-/*
-** A global pointer to a string represetning the current directory
-** DO NOT REFERENCE BEFORE RUNNING sfs_init();
-*/
-char* directory;
 
 /*
 ** Create and initialize a file system, returning it's representative

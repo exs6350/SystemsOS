@@ -276,37 +276,61 @@ void _init( void ) {
 
 	//Basic file system test
 	c_puts( "Creating file...\n" );
-	int c_test = _sfs_create("TEST.txt", FILE);
+	int c_test = _sfs_create("/TEST.txt", FILE);
+	c_puts( "File Created...\n" );
 
-	sfs_entry* exists = _sfs_exists("TEST.txt", FILE);
+	sfs_entry* exists = _sfs_exists("/TEST.txt", FILE);
 	if(compare((char*)&exists->name,ROOT) != 0)
 		c_puts( "File exists...\n" );
 	else
 		c_puts( "uh oh...\n" );
+	c_puts("E:");
+	c_puts((char*)&exists->name);
+	c_puts("\n");
 
 	c_puts( "Writing to file...\n" );
 	char* buf = "THIS IS FILE DATA!";
-	int e_test = _sfs_write("TEST.txt", len(buf), (uint8_t *) buf);
+	int w_test = _sfs_write("/TEST.txt", len(buf), (uint8_t *) buf);
+
+	c_puts( "Writing to ghost file...\n" );
+	char* buf2 = "THIS IS FILE DATA!";
+	int g_test = _sfs_write("/ST.txt", len(buf2), (uint8_t *) buf2);
 
 	c_puts( "Read from file...\n" );
-	uint8_t* buffer = _sfs_read("TEST.txt");
+	uint8_t* buffer = _sfs_read("/TEST.txt");
 	//if(buffer != 0) c_puts("YES\n");
 	c_puts((char *) buffer);
 	c_puts("\n");
 
 	c_puts( "Deleting file...\n" );
-	int d_test = _sfs_delete("TEST.txt");
+	int d_test = _sfs_delete("/TEST.txt");
+
+	c_printf("\n%x%x%x%x\n", c_test, w_test, g_test, d_test);
 
 	c_puts(_get_directory());
 	c_puts("\n");
-	int z_test = _sfs_create("/hello", DIRECTORY);	
+	int z_test = _sfs_create("/hello", DIRECTORY);
+	sfs_entry* exists2 = _sfs_exists("hello", DIRECTORY);
+	if(compare((char*)&exists2->name,ROOT) != 0)
+		c_puts( "Directory exists...\n" );
+	else
+		c_puts( "uh oh...\n" );
 	int x_test = _set_directory("/hello");
 	c_puts(_get_directory());
 	c_puts("\n");
 	c_puts(_adjust_filename("Test_file.t"));
 	c_puts("\n");
+	int test_1 = _sfs_create("test1.t", FILE);
+	int test_2 = _sfs_create("/test2.t", FILE);
+	int test_3 = _sfs_create("/hello/test3.t", FILE);
+	int test_4 = _sfs_create("folder", DIRECTORY);
+	int test_5 = _sfs_create("folder/test5.t", FILE);
+	int test_6 = _sfs_create("/DNE/test6.t", FILE);
 	
-	c_printf("\n%x%x%x%x%x\n", c_test, d_test, e_test, z_test, x_test);
+	c_printf("\n%x%x%x%x%x%x%x%x\n", z_test, x_test, test_1, test_2, test_3, test_4, test_5, test_6);
 	
 
+	
+	c_puts("\nStopping on getchar()...\n");
+	c_getchar();
 }
