@@ -23,7 +23,6 @@ void _sfs_init( void ) {
 
 	//Make sure filesystem starts out clean
 	_memset((uint8_t *)fileSystem, 0, sizeof(&fileSystem));
-
 	sfs_entry* entry;
 	for(int i = 0; i < NUM_ENTRIES; i++) {
 		entry = &fileSystem->entries[i];
@@ -240,26 +239,26 @@ uint8_t _sfs_write(char* f_name, uint16_t size, uint8_t* buffer) {
 */
 uint8_t* _sfs_list( void ) {
 
-	/*uint8_t* result = 0;
+	uint8_t* result = 0;
+	*result = 0;
 
 	uint8_t* buffer = result;
 	for(int i = 0; i < NUM_ENTRIES; ++i) {
-		sfs_file *entry = &fileSystem->files[i];
-		if(entry->filename[0] != '\0') {
-			for(int j = 0; entry->filename[j] != '\0'; j++) {
-				c_puts("IN THE LOOP!");
-				*buffer = entry->filename[j];
+		sfs_entry *entry = &fileSystem->entries[i];
+		if(entry->name[0] != 0) {
+//			c_puts("-A");
+			c_printf("\n%x\n", entry->name[0]);
+			for(int j = 0; entry->name[j] != '\0'; j++) {
+				*buffer = entry->name[j];
 				buffer++;
-				//filename++;
-				//c_printf("\n%x", *filename);
 			}
 			*buffer = '\n';
 			buffer++;
 		}
 	}
 	*buffer = '\0';
-	return result;*/
-	return (uint8_t *)1;
+	return result;
+//	return (uint8_t *)1;
 }
 
 /*

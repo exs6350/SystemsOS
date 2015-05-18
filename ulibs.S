@@ -46,6 +46,7 @@ SYSCALL(create_file)
 SYSCALL(delete_file)
 SYSCALL(read_file)
 SYSCALL(write_file)
+SYSCALL(list_files)
 
 // This is a bogus system call; it's here so that we can test
 // our handling of out-of-range syscall codes in the syscall ISR.

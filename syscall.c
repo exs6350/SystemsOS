@@ -467,6 +467,16 @@ static void _sys_read_file( pcb_t *pcb ) {
 	RET(pcb->context) = (int) res;
 }
 
+static void _sys_list_files( pcb_t *pcb ) {
+	
+	c_puts( "SYSCALL.C Calling list...\n");
+
+	uint8_t *res = _sfs_list();
+	
+	RET(pcb->context) = (int) res;
+
+}
+
 /*
 ** PUBLIC FUNCTIONS
 */
@@ -506,6 +516,7 @@ void _sys_modinit( void ) {
 	_syscalls[ SYS_delete_file ]      = _sys_delete_file;
 	_syscalls[ SYS_write_file ]       = _sys_write_file;
 	_syscalls[ SYS_read_file ]        = _sys_read_file;
+	_syscalls[ SYS_list_files ]       = _sys_list_files;
 
 	// install our ISR
 

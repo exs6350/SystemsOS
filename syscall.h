@@ -32,10 +32,11 @@
 #define SYS_delete_file		8
 #define SYS_write_file		9
 #define SYS_read_file		10
+#define SYS_list_files		11
 
 // number of "real" system calls
 
-#define	N_SYSCALLS	11
+#define	N_SYSCALLS	12
 
 // dummy system call code to test the syscall ISR
 

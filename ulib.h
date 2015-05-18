@@ -194,7 +194,7 @@ uint8_t write_file( char* filename, uint16_t size, char* buffer );
 */
 uint8_t read_file( char* filename );
 
-
+uint8_t list_files( void );
 
 /*
 ** bogus - a bogus system call, for testing our syscall ISR
