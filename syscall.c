@@ -414,17 +414,33 @@ static void _sys_write( pcb_t *pcb ) {
 
 }
 
+/*
+** _sys_create_file - creates a file in the file system
+**
+** implements:	uint8_t create_file( char* filename );
+**
+** returns:
+**	0 for success, 1 for failure
+*/
 static void _sys_create_file( pcb_t *pcb ) {
 	char *filename = (char *) ARG(1,pcb->context);
 
 	c_puts( "SYSCALL.C: Creating file...\n" );
-	int res = _sfs_create(filename, 0);
+	int res = _sfs_create(filename, FILE);
 	if( res == 0 ) c_puts("SYSCALL.C: Create success\n");
 	else c_puts("SYSCALL.C Create failed\n");
 	
 	RET(pcb->context) = res;
 }
 
+/*
+** _sys_delete_file - deletes a file in the file system
+**
+** implements:	uint8_t delete_file( char* filename );
+**
+** returns:
+**	0 for success, 1 for failure
+*/
 static void _sys_delete_file( pcb_t *pcb ) {
 	char *filename = (char *) ARG(1,pcb->context);
 	
@@ -437,22 +453,40 @@ static void _sys_delete_file( pcb_t *pcb ) {
 
 }
 
+/*
+** _sys_write_file - writes to a file in the file system
+**
+** implements:	uint8_t write_file( char* filename, uint8_t size, char* buf,
+**			int doAppend );
+**
+** returns:
+**	0 for success, 1 for failure
+*/
 static void _sys_write_file( pcb_t *pcb ) {
 	char *filename = (char *) ARG(1,pcb->context);
 	uint16_t size = (uint16_t) ARG(2,pcb->context);
 	uint8_t *buf = (uint8_t *) ARG(3,pcb->context);
+	int doAppend = (int) ARG(4,pcb->context);
 	
 	c_puts(filename);
 	c_puts((char *) buf);
 
 	c_puts( "SYSCALL.C Writing to file...\n" );
-	int res = _sfs_write(filename, size, buf);
+	int res = _sfs_write(filename, size, buf, doAppend);
 	if(res == 0) c_puts("SYSCALL.C Write success\n");
 	else c_puts("SYSCALL.C Write failed\n");
 
 	RET(pcb->context) = res;
 }
 
+/*
+** _sys_read_file - reads a file in the file system
+**
+** implements:	uint8_t read_file( char* filename );
+**
+** returns:
+**	0 for failure, or pointer to data
+*/
 static void _sys_read_file( pcb_t *pcb ) {
 	char *filename = (char *) ARG(1,pcb->context);
 	
@@ -467,6 +501,14 @@ static void _sys_read_file( pcb_t *pcb ) {
 	RET(pcb->context) = (int) res;
 }
 
+/*
+** _sys_list_file - lists the files in the file system
+**
+** implements:	uint8_t list_file( void );
+**
+** returns:
+**	pointer for the string result
+*/
 static void _sys_list_files( pcb_t *pcb ) {
 	
 	c_puts( "SYSCALL.C Calling list...\n");

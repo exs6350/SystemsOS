@@ -286,7 +286,7 @@ void _init( void ) {
 
 	c_puts( "Writing to file...\n" );
 	char* buf = "THIS IS FILE DATA!";
-	int e_test = _sfs_write("TEST.txt", len(buf), (uint8_t *) buf);
+	int e_test = _sfs_write("TEST.txt", len(buf), (uint8_t *) buf, 0);
 
 	c_puts( "Read from file...\n" );
 	uint8_t* buffer = _sfs_read("TEST.txt");
