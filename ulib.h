@@ -214,6 +214,16 @@ uint8_t read_file( char* filename );
 uint8_t list_files( void );
 
 /*
+** cd - changes current directory in the file system
+**
+** implements:	uint8_t _set_directory( char* new_dir );
+**
+** returns:
+**	0 for success, anything else for failure
+*/
+uint8_t cd( pcb_t *pcb );
+
+/*
 ** bogus - a bogus system call, for testing our syscall ISR
 **
 ** usage:	bogus();

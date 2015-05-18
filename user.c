@@ -965,6 +965,13 @@ void shell( void ) {
 				exit();
 			}
 		} else if(compare(commandBuffer, "cd") == 0) {
+			write(FD_SIO, "Changing directory to: ", 0);
+			write(FD_SIO, paramBuffer, 0);
+			write(FD_SIO, "\n", 0);
+
+			int res = create_file(paramBuffer);
+			if(res == 0) write(FD_SIO, "Changed directory!\n", 0);
+			else write( FD_SIO, "Failed to change directory\n", 0);
 
 		} else if(compare(commandBuffer, "mkdir") == 0) {
 

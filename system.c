@@ -275,6 +275,8 @@ void _init( void ) {
 	_schedule( pcb );
 
 	//Basic file system test
+
+	if(1){
 	c_puts( "Creating file...\n" );
 	int c_test = _sfs_create("/TEST.txt", FILE);
 	c_puts( "File Created...\n" );
@@ -290,11 +292,11 @@ void _init( void ) {
 
 	c_puts( "Writing to file...\n" );
 	char* buf = "THIS IS FILE DATA!";
-	int w_test = _sfs_write("/TEST.txt", len(buf), (uint8_t *) buf);
+	int w_test = _sfs_write("/TEST.txt", len(buf), (uint8_t *) buf, 0);
 
 	c_puts( "Writing to ghost file...\n" );
 	char* buf2 = "THIS IS FILE DATA!";
-	int g_test = _sfs_write("/ST.txt", len(buf2), (uint8_t *) buf2);
+	int g_test = _sfs_write("/ST.txt", len(buf2), (uint8_t *) buf2, 0);
 
 	c_puts( "Read from file...\n" );
 	uint8_t* buffer = _sfs_read("/TEST.txt");
@@ -316,21 +318,20 @@ void _init( void ) {
 	else
 		c_puts( "uh oh...\n" );
 	int x_test = _set_directory("/hello");
+	c_puts("Changing directory to ");
 	c_puts(_get_directory());
-	c_puts("\n");
-	c_puts(_adjust_filename("Test_file.t"));
 	c_puts("\n");
 	int test_1 = _sfs_create("test1.t", FILE);
 	int test_2 = _sfs_create("/test2.t", FILE);
 	int test_3 = _sfs_create("/hello/test3.t", FILE);
 	int test_4 = _sfs_create("folder", DIRECTORY);
-	int test_5 = _sfs_create("folder/test5.t", FILE);
+	int test_5 = _sfs_create("/hello/folder/test5.t", FILE);
 	int test_6 = _sfs_create("/DNE/test6.t", FILE);
+	int test_7 = _sfs_delete("/hello");
 	
-	c_printf("\n%x%x%x%x%x%x%x%x\n", z_test, x_test, test_1, test_2, test_3, test_4, test_5, test_6);
-	
-
+	c_printf("\n%x%x%x%x%x%x%x%x%x\n", z_test, x_test, test_1, test_2, test_3, test_4, test_5, test_6, test_7);
 	
 	c_puts("\nStopping on getchar()...\n");
 	c_getchar();
+	}
 }

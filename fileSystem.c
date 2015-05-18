@@ -112,34 +112,33 @@ uint8_t _sfs_create(char* name, uint8_t entry_type) {
 
 	*checkNameTemp = DIR_SEPERATOR;
 	checkNameTemp++;
-	*(checkNameTemp+1) = '\0';
+	*checkNameTemp = '\0';
 
-//	c_puts("C:");
-//	c_puts(entryName);
-//	c_puts("|");
-//	c_puts(checkName);
-//	c_puts("\n");
+	c_puts("C:");
+	c_puts(entryName);
+	c_puts("|");
+	c_puts(checkName);
+	c_puts("\n");
 
 	while(*temp != '\0') {
 //		c_puts(temp);
 //		c_puts("|");
 		if(*temp == DIR_SEPERATOR) {
 			*checkNameTemp = '\0';
-			/*c_puts("\nT:");
+			c_puts("\nT:");
 			c_puts(temp);
 			c_puts("|");
 			c_puts(checkName);
-			c_puts("\n");*/
+			c_puts("\n");
 			entry = _sfs_exists(checkName, DIRECTORY);
 			if(compare((char*)&entry->name,ROOT) == 0) {
-				c_puts("FAIL\n");
 				return 2; //Return 2 if the proper directories do not exist
 			}
 		}
 		
 		*checkNameTemp = *temp;
 		checkNameTemp++;
-		*(checkNameTemp+1) = '\0';
+		*checkNameTemp = '\0';
 		temp++;
 	
 	}
@@ -151,7 +150,7 @@ uint8_t _sfs_create(char* name, uint8_t entry_type) {
 		}
 
 		char* c = entryName;
-		for(int i = 0; i < MAX_FILE_NAME_LENGTH - 1 && *c != '\0'; i++) {
+		for(int i = 0; i < MAX_NAME_LENGTH - 1 && *c != '\0'; i++) {
 			entry->name[i] = *c;
 			entry->name[i+1] = '\0';
 			c++;
@@ -183,16 +182,11 @@ uint8_t _sfs_delete(char* f_name) {
 	sfs_entry *entry = _sfs_exists(filename, FILE);
 
 	if(compare((char*)&entry->name,ROOT) == 0) {
-		return 1; //No file entries with that name
+		entry = _sfs_exists(filename, DIRECTORY);
+		if(compare((char*)&entry->name,ROOT) == 0) {
+			return 1; //No file entries with that name
+		}
 	}
-
-
-	c_puts("D:");
-	c_puts((char*)&entry->name);
-	c_puts("...");
-	c_puts(ROOT);
-	c_printf("...%x", compare((char*)&entry->name,ROOT));
-	c_puts("\n");
 
 	/*if(file->payload == 0) {
 		return 0; //No data to delete, should never be the case
@@ -212,11 +206,33 @@ uint8_t _sfs_delete(char* f_name) {
 		}
 	}
 	else if(entry->type == DIRECTORY) {
+		char* delete;
+		char* nameCheck;
+		sfs_entry *temp;
+		int flag;
+		
+		//If the directory has any files/subfolders, do not delete
 		for(int j = 0; j< NUM_ENTRIES; ++j) {
-			/*if(hashCommand(filename) == hashCommand((char*)&entry->filename)) {
-				continue; //File entry is not what we are looking for
-			}*/
-			//If file name starts with directory name, delete.
+			temp = &fileSystem->entries[j];
+			nameCheck = (char*)&temp->name;
+			delete = (char*)&entry->name;
+			flag = 0;
+
+			if(len(nameCheck) > len(delete)) {
+				flag = 2;
+				while(*delete != '\0') {
+					if(*delete != *nameCheck) {
+						flag = 1;
+					}
+					nameCheck++;
+					delete++;
+				}
+			}
+
+			if(flag == 2) {
+				return 2; //Return 2 if there is a file or
+					  //subfolder in this directory
+			}
 		}
 	}
 

@@ -520,6 +520,25 @@ static void _sys_list_files( pcb_t *pcb ) {
 }
 
 /*
+** _sys_cd - changes current directory in the file system
+**
+** implements:	uint8_t _set_directory( char* new_dir );
+**
+** returns:
+**	0 for success, anything else for failure
+*/
+static void _sys_cd( pcb_t *pcb ) {
+	char *new_dir = (char *) ARG(1,pcb->context);
+
+	c_puts( "SYSCALL.C: Changing directory...\n" );
+	int res = _set_directory(new_dir);
+	if( res == 0 ) c_puts("SYSCALL.C: cd success\n");
+	else c_puts("SYSCALL.C cd failed\n");
+	
+	RET(pcb->context) = res;
+}
+
+/*
 ** PUBLIC FUNCTIONS
 */
 
@@ -559,6 +578,7 @@ void _sys_modinit( void ) {
 	_syscalls[ SYS_write_file ]       = _sys_write_file;
 	_syscalls[ SYS_read_file ]        = _sys_read_file;
 	_syscalls[ SYS_list_files ]       = _sys_list_files;
+	_syscalls[ SYS_cd ]      	  = _sys_cd;
 
 	// install our ISR
 
