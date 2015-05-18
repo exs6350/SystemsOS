@@ -143,7 +143,7 @@ char* _get_directory( void );
 ** Return 0 on success
 ** Return anything else on failure
 */
-uint8_t* _set_directory( char* new_dir );
+uint8_t _set_directory( char* new_dir );
 
 /**
 ** Update a filename to match the current directory

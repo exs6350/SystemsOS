@@ -278,13 +278,15 @@ void _init( void ) {
 	c_puts( "Creating file...\n" );
 	int c_test = _sfs_create("TEST.txt", FILE);
 
-	c_puts( "Writing to file...\n" );
-	char* buf = "abc";
-	int e_test = _sfs_write("TEST.txt", 4, (uint8_t *) buf);
+	sfs_entry* exists = _sfs_exists("TEST.txt", FILE);
+	if(compare((char*)&exists->name,ROOT) != 0)
+		c_puts( "File exists...\n" );
+	else
+		c_puts( "uh oh...\n" );
 
-	c_puts( "Writing to ghost file...\n" );
-	char* buf_f = "fail";
-	int f_test = _sfs_write("TEST1234.txt", 4, (uint8_t *) buf_f);
+	c_puts( "Writing to file...\n" );
+	char* buf = "THIS IS FILE DATA!";
+	int e_test = _sfs_write("TEST.txt", len(buf), (uint8_t *) buf);
 
 	c_puts( "Read from file...\n" );
 	uint8_t* buffer = _sfs_read("TEST.txt");
@@ -292,21 +294,19 @@ void _init( void ) {
 	c_puts((char *) buffer);
 	c_puts("\n");
 
-	sfs_entry* exists = _sfs_exists("TEST.txt", FILE);
-	if(compare((char*)&exists->name,ROOT) != 0)
-		c_puts( "File exists...\n" );
-	else
-		c_puts( "uh oh...\n" );
-
-	sfs_entry* exists2 = _sfs_exists("TEST1234.txt", FILE);
-	if(compare((char*)&exists2->name,ROOT) == 0)
-		c_puts( "Ghost file DNE...\n" );
-	else
-		c_puts( "WTF?!...\n" );
-
 	c_puts( "Deleting file...\n" );
 	int d_test = _sfs_delete("TEST.txt");
 
-	c_printf("\n%x%x%x%x\n", c_test, d_test, e_test, f_test);
+	c_puts(_get_directory());
+	c_puts("\n");
+	int z_test = _sfs_create("/hello", DIRECTORY);	
+	int x_test = _set_directory("/hello");
+	c_puts(_get_directory());
+	c_puts("\n");
+	c_puts(_adjust_filename("Test_file.t"));
+	c_puts("\n");
+	
+	c_printf("\n%x%x%x%x%x\n", c_test, d_test, e_test, z_test, x_test);
+	
 
 }

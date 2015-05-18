@@ -50,6 +50,7 @@ void _sfs_init( void ) {
 	}
 
 	_sfs_create(ROOT, DIRECTORY);
+	_set_directory(ROOT);
 
 
 	// Set the location for the read buffer which is used to pass
@@ -73,7 +74,7 @@ uint8_t _sfs_create(char* name, uint8_t entry_type) {
 		if( entry->name[0] != '\0' ) {
 			continue; //Entry in use
 		}
-		char* c = name;
+		char* c = _adjust_filename(name);
 		for(int i = 0; i < MAX_FILE_NAME_LENGTH - 1 && *c != '\0'; i++) {
 			entry->name[i] = *c;
 			entry->name[i+1] = '\0';
@@ -98,7 +99,9 @@ uint8_t _sfs_create(char* name, uint8_t entry_type) {
 /*
 ** Delete an existing file or directory
 */
-uint8_t _sfs_delete(char* filename) {
+uint8_t _sfs_delete(char* f_name) {
+
+	char* filename = _adjust_filename(f_name);
 
 	sfs_entry *entry = _sfs_exists(filename, FILE);
 
@@ -142,9 +145,11 @@ uint8_t _sfs_delete(char* filename) {
 /*
 ** Read an existing file
 */
-uint8_t* _sfs_read(char* filename) {
+uint8_t* _sfs_read(char* f_name) {
 	uint8_t* result = 0;
 	*result = 0;
+
+	char* filename = _adjust_filename(f_name);
 
 	sfs_entry *entry = _sfs_exists(filename, FILE);
 
@@ -194,8 +199,10 @@ uint8_t* _sfs_read(char* filename) {
 /*
 ** Write to an existing file
 */
-uint8_t _sfs_write(char* filename, uint16_t size, uint8_t* buffer) {
+uint8_t _sfs_write(char* f_name, uint16_t size, uint8_t* buffer) {
 	
+	char* filename = _adjust_filename(f_name);
+
 	sfs_entry *entry = _sfs_exists(filename, FILE);
 
 	if(compare((char*)&entry->name,ROOT) == 0) {
@@ -262,7 +269,9 @@ uint8_t* _sfs_list( void ) {
 ** Returns a pointer to address 512 megabytes in RAM if it does not
 ** 	(This only seems to work at spaces in RAM that are empty...)
 */
-sfs_entry* _sfs_exists( char* filename, uint8_t filetype ) {
+sfs_entry* _sfs_exists( char* f_name, uint8_t filetype ) {
+	char* filename = _adjust_filename(f_name);	
+
 	for(int i = 0; i < NUM_ENTRIES; ++i) {
 		sfs_entry *entry = &fileSystem->entries[i];
 		
@@ -288,7 +297,7 @@ sfs_file_table* _get_fileSystem( void ) {
 /*
 ** Returns a pointer to the string holding the current directory
 */
-char* get_directory( void ) {
+char* _get_directory( void ) {
 	return directory;
 }
 
@@ -298,22 +307,54 @@ char* get_directory( void ) {
 ** Return 0 on success
 ** Return anything else on failure
 */
-uint8_t* _set_directory( char* new_dir ) {
-	//if directory exists...
-		directory = new_dir;
+uint8_t _set_directory( char* new_dir ) {
+	if(compare(new_dir, ROOT) == 0) {
+		directory = ROOT;
 		return 0;
-	//else
-		//return -1
+	}
+
+	sfs_entry *entry = _sfs_exists(new_dir, DIRECTORY);
+	if(compare((char*)&entry->name,ROOT) == 0) {
+		return -1; //Directory doesn't exist
+	}
+	
+	directory = _adjust_filename(new_dir);
+	return 0;
 }
 
 /**
 ** Update a filename to match the current directory
 **/
 char* _adjust_filename( char* filename ) {
-	/*char*	
-
+	
 	if(*filename != DIR_SEPERATOR) {
+		char* result = "";
+		char* tempResult = result;
+		char* tempDir = directory;
+		char* tempName = filename;
+		
+		for(int i = 0; i < len(directory); i++) {
+			*tempResult = *tempDir;
+			tempResult++;
+			tempDir++;
+		}
+		
+		if(compare(directory, ROOT) != 0) {
+			*tempResult = DIR_SEPERATOR;
+			tempResult++;
+		}
+		
+		for(int j = 0; j < len(filename); j++) {
+			*tempResult = *tempName;
+			tempResult++;
+			tempName++;
+		}
+
+		*tempResult = '\0';
+
+		return result;
 	}
-	return*/
-	return filename;
+	else {
+		return filename;
+	}
 }
