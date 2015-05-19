@@ -14,13 +14,19 @@ static struct usb_class_driver class;
 static uint8_t data_transfer_buffer[MAX_PKT_SIZE];
 
 /*for later use with file system to open file*/
-static int usb_open(void){
+static int usb_open(struct file *f){
+
 }
 
 /*For later use with file system to close file*/
-static int usb_close(void){
+static int usb_close(struct file *f){
+
 }
 
+/*
+Reads the file from storage and passes back the data 
+through a pipe putting it into the buffer
+*/
 static int32_t usb_read(struct file *f, uint8_t *buffer, int32_t count){
 	int32_t retval;
 	int32_t read_count;
@@ -32,6 +38,10 @@ static int32_t usb_read(struct file *f, uint8_t *buffer, int32_t count){
 	}
 }
 
+/*
+Writes to the storage using pipes returns 1 on success
+-1 on fail
+*/
 static int32_t usb_write(void){
 	int32_t retval;
 	int32_t wrote_count;
@@ -40,6 +50,10 @@ static int32_t usb_write(void){
 	
 }
 
+/*
+This function should be called when a usb device is inserted into the hub 
+and we should be able to identify the device info
+*/
 static int usb_probe(struct usb_interface *interface, const struct usb_device_id *id){
 	/*This function should be called when we attach our usb
 	printk(KERN_INFO "Usb drive (%04X:%04X) plugged\n", id->idVendor, id->idProduct);
@@ -47,6 +61,9 @@ static int usb_probe(struct usb_interface *interface, const struct usb_device_id
 	return 0;
 }
 
+/*
+Called when the usb device is disconnected and we clean up
+*/
 static void usb_disconnect(struct usb_interface *interface){
 	/*This function should be called when we disconnect our usb
 	
@@ -60,6 +77,9 @@ static struct usb_device_id device_table[] = {
 };
 MODULE_DEVICE_TABLE(usb, device_table);
 
+/*
+Driver info for the hp flash drive
+*/
 static struct usb_driver hp_driver = {
 	.name = "2gb USB driver",
 	.id_table = device_table,
@@ -67,16 +87,16 @@ static struct usb_driver hp_driver = {
 	.disconnect = usb_disconnect,
 };
 
+/*
+Register this driver 
+*/
 static int __init usb_init(void){
 	return usb_register(&hp_driver);
 }
 
+/*
+Deregister the driver
+*/
 static void __exit usb_exit(void){
 	usb_deregister(&hp_driver);
 }
-module_init(usb_exit);
-module_exit(usb_exit);
-
-MODULE_LICENSE("GPL");
-MODULE_AUTHOR("Ernesto Soltero, Nick Jennis, Max Roth");
-MODULE_DESCRIPTION("USB driver to register in linux");

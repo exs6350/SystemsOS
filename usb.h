@@ -92,8 +92,24 @@ struct usb_host_config{
 	struct usb_interface *interface[USB_MAXINTERFACES];
 };
 
+/*
+Represents a usb device
+*/
 struct usb_device{
+	uint32_t devnum;
+	uint8_t devpath[16];
+	uint32_t route;
+	uint8_t toggle[2];
+	struct usb_device *parent;
+	struct usb_bus *bus;
+	struct usb_host_endpoint ep;
+	struct device dev;
+	struct usb_device_descriptor desc;
+	struct usb_host_bos *bos;
+	struct usb_host_config config;
 
+	struct usb_host_endpooint *ep_in[16];
+	struct usb_host_endpoint *ep_out[16];
 };
 
 /*Allocated per bus*/
