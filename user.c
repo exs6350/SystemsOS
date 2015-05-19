@@ -52,7 +52,7 @@ void user_s( void ); void user_t( void ); void user_u( void );
 void user_v( void ); void user_w( void ); void user_x( void );
 void user_y( void ); void user_z( void );
 
-void helloCommand( void ); void lsCommand( void );void cdCommand( void );
+void helloCommand( void );
 
 /*
 ** Users A, B, and C are identical, except for the character they
@@ -774,7 +774,8 @@ void idle( void ) {
 }
 
 /*
-** hello - Process to output "Hello world!" to prove we can succesfully create new processes.
+** hello - Process to output "Hello world!" to prove we can succesfully create
+** new processes.
 */
 
 void hello( void ) {
@@ -784,7 +785,8 @@ void hello( void ) {
 }
 
 /*
-Simple hash to figure out what command is entered in shell
+** Simple hash to figure out what command is entered in shell
+** No longer used
 */
 int hashCommand(char* commandBuffer){
 	int hash = 0;
@@ -799,7 +801,10 @@ int hashCommand(char* commandBuffer){
 }
 
 /*
-Helper function to get the length of a string or other null terminated buffer
+** Helper function to get the length of a string or other null terminated
+** buffer
+** 
+** Retuns an int representing the length of the string.
 */
 int len(char* buffer){
 	char* temp = buffer;
@@ -807,17 +812,16 @@ int len(char* buffer){
 	while (*temp != '\0') {
 		len++;
 		temp++;
-		//write( FD_CONSOLE, (char*)hash, 0);
 	} 
 	return len;
 }
 
 /*
-Helper function to compare two strings or other null terminated buffer
-
-Returns 0 if the buffers are equal
-Returns <0 if the first buffer is greater (maybe, will not return 0)
-Returns >0 if the second buffer is greater (maybe, will not return 0)
+** Helper function to compare two strings or other null terminated buffer
+** 
+** Returns 0 if the buffers are equal
+** Returns <0 if the first buffer is greater (maybe, will not return 0)
+** Returns >0 if the second buffer is greater (maybe, will not return 0)
 */
 int compare(char* buffer1, char* buffer2) {
 	int sizeDiff = len(buffer1) != len(buffer2);
@@ -839,6 +843,13 @@ int compare(char* buffer1, char* buffer2) {
 	}
 }
 
+/*
+** This is the main process that runs to allow user interaction
+**
+** The shell reads in a command with up to 2 space separated parameters.
+** If the command is matched, then a new process is created if necessary.
+** The shell loops until the OS shuts down.
+*/
 void shell( void ) {
 
 	char readBuffer[5];
@@ -851,7 +862,7 @@ void shell( void ) {
 	int comBufIndex = 0;
 	int pBufIndex = 0;
 	int pBufIndex2 = 0;
-	int usedSpace = 1; // Set to 1 because you can't have a space at the beginning
+	int usedSpace = 1;
 
 	while( 1 ) {
 		write( FD_SIO, "$ ", 0 );
@@ -859,7 +870,7 @@ void shell( void ) {
 		while( !gotCommand ) {
 			int size = read( FD_SIO, readBuffer, 5 );
 			if( size != 0 ){
-				for( int i = 0; i < size; ++i ) { // I'm not sure if we need this loop
+				for( int i = 0; i < size; ++i ) { 
 					// Only allow 1 space
 					if( readBuffer[i] == ' ' ) {
 						if( usedSpace ) continue;
@@ -867,14 +878,16 @@ void shell( void ) {
 					} else usedSpace = 0;
 
 					resBufIndex++;
-					write( FD_CONSOLE, &readBuffer[i], 1 ); // Echo the char
+					write( FD_CONSOLE, &readBuffer[i], 1 );
 					write( FD_SIO, &readBuffer[i], 1 );
-					if(readBuffer[i] == '\n' || readBuffer[i] == '\r') {
+					if(readBuffer[i] == '\n' ||
+						readBuffer[i] == '\r') {
+
 						gotCommand = 1;
-// This might need to be changed to handle hitting enter and typing immediatly while waiting for us to handle the previous command.
 						break;
 					}
-					resultBuffer[resBufIndex] = readBuffer[i];
+					resultBuffer[resBufIndex] =
+						readBuffer[i];
 					
 				}
 			}
@@ -889,9 +902,7 @@ void shell( void ) {
 		}
 	
 
-		// This code splits the entered command into at most 4 space separated words.
-		// The first word is assumed to be the command and the other 2 are parameters.
-
+		// Split up the command by spaces, up to 3 words
 		int doneCommand = 0;
 		int doneParam1 = 0;
 		int doneParam2 = 0;
@@ -906,7 +917,8 @@ void shell( void ) {
 				if( !doneCommand ) doneCommand = 1;
 				else if( !doneParam1 ) doneParam1 = 1;
 				else if( !doneParam2 ) doneParam2 = 1;
-				else write( FD_CONSOLE, "Ignoring extra spaces!", 0 );
+				else write( FD_CONSOLE,
+					"Ignoring extra spaces!", 0 );
 
 				continue;
 			}
@@ -925,7 +937,8 @@ void shell( void ) {
 				pBufIndex2++;
 			}
 			else {
-				write( FD_CONSOLE, "Ignoring extra params!", 0 );
+				write( FD_CONSOLE,
+				"Ignoring extra params!", 0 );
 			}
 		}
 		// Null terminate buffer.
@@ -934,24 +947,17 @@ void shell( void ) {
 		paramBuffer2[pBufIndex2] = '\0';
 		
 
-		// Here we have split the entered command into the actual command
-		// and 2 parameters, if there were any.
-		// Just printing them out to the console for us to see.
+		// Print out the buffers on the console.
 		write( FD_CONSOLE, "CommandBuffer\n", 0);
 		write( FD_CONSOLE, commandBuffer, 0 );
 		write( FD_CONSOLE, "\nParamBuffer1\n", 0);
-		(pBufIndex > 0 ? write( FD_CONSOLE, paramBuffer, 0 ) : write(FD_CONSOLE, "empty", 0));
+		(pBufIndex > 0 ? write( FD_CONSOLE, paramBuffer, 0 ) :
+			write(FD_CONSOLE, "empty", 0));
 		write( FD_CONSOLE, "\nParamBuffer2\n", 0);
-		(pBufIndex2 > 0 ? write( FD_CONSOLE, paramBuffer2, 0 ) : write(FD_CONSOLE, "empty", 0));
+		(pBufIndex2 > 0 ? write( FD_CONSOLE, paramBuffer2, 0 ) :
+			write(FD_CONSOLE, "empty", 0));
 		write(FD_CONSOLE, "\n", 0);
 
-
-		// Now we need to check what command the user entered.
-		// Again, this probably would make sense to separate into another function.
-		//checkCommand(resultBuffer
-
-		//easier way of doing it hash the command and we can figure out what it is
-		//int hash = hashCommand(commandBuffer);
 
 		int16_t pid;
 
@@ -961,7 +967,8 @@ void shell( void ) {
 		} else if( compare(commandBuffer, "hello") == 0) {
 			pid = spawnp(helloCommand, PRIO_USER_HIGH);
 			if( pid < 0) {
-				write( FD_CONSOLE, "init, spawn() hello failed\n", 0);
+				write( FD_CONSOLE,
+					"init, spawn() hello failed\n", 0);
 				exit();
 			}
 		} else if(compare(commandBuffer, "cd") == 0) {
@@ -998,7 +1005,8 @@ void shell( void ) {
 			write(FD_SIO, "Writing to file: ", 0);
 			write(FD_SIO, paramBuffer, 0);
 			write(FD_SIO, "\n", 0);
-			int res = write_file(paramBuffer, pBufIndex2+1, paramBuffer2, 0);
+			int res = write_file(paramBuffer, pBufIndex2+1,
+				paramBuffer2, 0);
 			if(res == 0) write(FD_SIO, "Write success!\n", 0);
 			else write( FD_SIO, "Failed to write\n", 0);
 
@@ -1007,7 +1015,8 @@ void shell( void ) {
 			write(FD_SIO, "Appending to file: ", 0);
 			write(FD_SIO, paramBuffer, 0);
 			write(FD_SIO, "\n", 0);
-			int res = write_file(paramBuffer, pBufIndex2+1, paramBuffer2, 1);
+			int res = write_file(paramBuffer, pBufIndex2+1,
+				paramBuffer2, 1);
 			if(res == 0) write(FD_SIO, "Append success!\n", 0);
 			else write( FD_SIO, "Failed to append\n", 0);
 
@@ -1026,7 +1035,7 @@ void shell( void ) {
 			} else write(FD_SIO, "No such file.\n", 0);
 		}
 		
-		// Reset the parameters and wait for the next command to be entered
+		// Reset the parameters
 		gotCommand = 0;
 		resBufIndex = -1;
 		usedSpace = 1;
@@ -1035,15 +1044,15 @@ void shell( void ) {
 		pBufIndex2 = 0;
 		
 
-		// Should we sleep for a quarter of a second to let the spawned process run?
-		// This also helps to put this next $ symbol on the line after the process
+		// Sleep for a bit
 		sleep( SECONDS_TO_MS(.25) );
 		
 	}
 }
 
 /*
-** "Hello World" type process to test process creation and command matching in the shell.
+** "Hello World" type process to test process creation and
+** command matching in the shell.
 */
 void helloCommand( void ) {
 
@@ -1053,25 +1062,4 @@ void helloCommand( void ) {
 	exit();
 }
 
-/*
-** Placeholder ls command process. For now just outputs sample text...
-*/
-void lsCommand( void ) {
-	
-	write(FD_CONSOLE, "\nIn ls Command\n", 0);
-	write(FD_SIO, "\n  File Info...\n  file1.txt   file2.txt\n", 0);
-	exit();
-}
 
-void cdCommand( void ) {
-	
-	
-}
-
-void mkdirCommand( void ) {
-	
-}
-
-void mkfileCommand( void ) {
-
-}
