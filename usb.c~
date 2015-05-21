@@ -46,7 +46,7 @@ static int32_t usb_write(void){
 	int32_t retval;
 	int32_t wrote_count;
 
-	retval = usb_bulk_msg(device, usb_sndbulkpipe(device, BULK_EP_OUT), data_transfer_buffer)
+	retval = usb_bulk_msg(device, usb_sndbulkpipe(device, BULK_EP_OUT), data_transfer_buffer, 
 	
 }
 
