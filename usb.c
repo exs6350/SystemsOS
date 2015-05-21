@@ -16,7 +16,7 @@ static uint8_t data_transfer_buffer[MAX_PKT_SIZE];
 
 /*for later use with file system to open file*/
 static int usb_open(struct file *f){
-	//File system dependent here
+	/*File system dependent here*/
 }
 
 /*For later use with file system to close file*/
