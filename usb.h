@@ -36,6 +36,7 @@ struct usb_host_endpoint{
 	uint16_t bInterval;
 };
 
+/*Holds information on the endpoint to send data through*/
 struct usb_endpoint_descriptor{
 	int8_t bLength;
 	int8_t bDesciptorType;
@@ -45,6 +46,7 @@ struct usb_endpoint_descriptor{
 	int8_t bInterval;
 };
 
+/*Holds information for usb device*/
 struct usb_device_descriptor{
 	int8_t bLength;
 	int8_t bDescriptorType;
@@ -144,49 +146,51 @@ struct usb_bus{
 	uint32_t resuming_ports;
 };
 
+/* converts a interface to device struct*/
 static inline struct usb_device *interface_to_usbdev(struct usb_interface *intf){
 	return to_usb_device(intf->dev.parent);
 };
 
 
+/*Message block to pass data*/
 struct urb{
-	//Pointer to the device which the urb is sent to 
+	/*Pointer to the device which the urb is sent to*/ 
 	struct usb_device *dev;
-	//Endpoint information for the specific usb device that this urb is going to be sent to
+	/*Endpoint information for the specific usb device that this urb is going to be sent to*/
 	int32_t pipe;
-	//status of transfer
+	/*status of transfer*/
 	int32_t status;
-	//Settings for transfer
+	/*Settings for transfer*/
 	int32_t transfer_flags;
-	//Pointer to the buffer to be used when sending/receiving data
+	/*Pointer to the buffer to be used when sending/receiving data*/
 	void *transfer_buffer;
-	//data transfer buffer when DMA is used
+	/*data transfer buffer when DMA is used*/
 	dma_addr_t transfer_dma;
-	//transfer buffer length
+	/*transfer buffer length*/
 	int32_t transfer_buffer_length;
-	//actual length sent or recieved by urb
+	/*actual length sent or recieved by urb*/
 	int32_t actual_length;
-	//completion handler called when transfer complete
+	/*completion handler called when transfer complete*/
 	usb_complete_t complete;
-	//data blob used when the completion handler is called
+	/*data blob used when the completion handler is called*/
 	void *context;
-	//Setup packet transferred before the data in transfer buffer (control urbs)
+	/*Setup packet transferred before the data in transfer buffer (control urbs)*/
 	uint8_t *setup_packet;
-	//Same as above but with dma
+	/*Same as above but with dma*/
 	dma_addr_t setup_dma;
-	//Urb polling interval (iso and interrupt urb)
+	/*Urb polling interval (iso and interrupt urb)*/
 	int32_t interval;
-	//Number of iso transfers that reported an error
+	/*Number of iso transfers that reported an error*/
 	int32_t error_count;
-	//Sets or returns the intial frame to use (iso urb)
+	/*Sets or returns the intial frame to use (iso urb)*/
 	int32_t start_frame;
-	//Number of iso transfer buffers to use (iso urb)
+	/*Number of iso transfer buffers to use (iso urb)*/
 	int32_t number_of_packets;
-	//Allows a single urb to define multiple iso transfers at once (iso urb)
+	/*Allows a single urb to define multiple iso transfers at once (iso urb)*/
 	struct usb_iso_packet_descriptor iso_frame_desc[0];	
 };
 
-//Functions used to initialize the pipe of a urb structure
+/*Functions used to initialize the pipe of a urb structure*/
 uint32_t usb_sndctrlpipe(struct usb_device *dev, uint32_t endpoint);
 uint32_t usb_rcvctrlpipe(struct usb_device *dev, uint32_t endpoint);
 uint32_t usb_sndbulkpipe(struct usb_device *dev, uint32_t endpoint);
@@ -196,36 +200,36 @@ uint32_t usb_rcvintpipe(struct usb_device *dev, uint32_t endpoint);
 uint32_t usb_sndisopipe(struct usb_device *dev, uint32_t endpoint);
 uint32_t usb_rcvisopipe(struct usb_device *dev, uint32_t endpoint);
 
-//used to allocate urb's
-//iso_packets should be 0 for anything other than iso transfers
+/*used to allocate urb's
+iso_packets should be 0 for anything other than iso transfers*/
 struct urb *usb_alloc_urb(int32_t iso_packets, gfp_t mem_flags);
 
-//used to free urbs
+/*used to free urbs*/
 void usb_free_urb(struct urb *urb);
 
-//used to fill in interrupt urb
+/*used to fill in interrupt urb*/
 void usb_fill_int_urb(struct urb *urb, struct usb_device *dev, uint32_t pipe, void *transfer_buffer, int32_t buffer_length, usb_complete_t complete, void *context, int32_t interval);
 
-//used to fill in bulk urb
+/*used to fill in bulk urb*/
 void usb_fill_bulk_urb(struct urb *urb, struct usb_device *dev, uint32_t pipe, void *transfer_buffer, int32_t buffer_length, usb_complete_t complete, void *context);
 
-//used to fill in a control urb
+/*used to fill in a control urb*/
 void usb_fill_control_urb(struct urb *urb, struct usb_device *dev, uint32_t pipe, uint8_t *setup_packet, void *transfer_buffer, int32_t buffer_length, usb_complete_t complete, void *context);
 
-//allocate a dma buffer
+/*allocate a dma buffer*/
 void *usb_buffer_alloc(struct usb_device *dev, int32_t size, gfp_t mem_flags, dma_addr_t *dma);
 
-//free the dma buffers
+/*free the dma buffers*/
 void usb_buffer_free(struct usb_device *dev, int32_t size, void *addr, dma_addr_t dma);
 
-//Submit the urb
+/*Submit the urb*/
 int32_t usb_submit_urb(struct urb *urb, int32_t mem_flags);
 
-//Cancel a urb async
+/*Cancel a urb async*/
 int32_t usb_unlink_urb(struct urb *urb);
 
-//Canels a urb sync
+/*Canels a urb sync*/
 void usb_kill_urb(struct urb *urb);
 
-//urb completion handler
+/*urb completion handler*/
 void (*usb_complete_t)(struct urb *, struct pt_regs *);

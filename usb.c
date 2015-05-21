@@ -3,6 +3,7 @@ Authors: Ernesto Soltero, Nick Jenis, Max Roth
 */
 #include "usb.h"
 #include "common.h"
+#include "fileSystem.h"
 #define HP_USB_VENDORID 0x03f0 /*Hewlett Packard*/
 #define HP_USB_PRODUCTID 0x3207 /* 4 gb device id (its actually 2gb but identifies as 4)*/
 #define BULK_EP_OUT 0x01
@@ -15,12 +16,12 @@ static uint8_t data_transfer_buffer[MAX_PKT_SIZE];
 
 /*for later use with file system to open file*/
 static int usb_open(struct file *f){
-
+	//File system dependent here
 }
 
 /*For later use with file system to close file*/
 static int usb_close(struct file *f){
-
+	//file system dependent here
 }
 
 /*
@@ -30,6 +31,9 @@ through a pipe putting it into the buffer
 static int32_t usb_read(struct file *f, uint8_t *buffer, int32_t count){
 	int32_t retval;
 	int32_t read_count;
+
+	/*Read from file system and but in to data_transfer_buffer then
+	pass back though message*/
 
 	retval = usb_bulk_msg(device, usb_rcvbulkpipe(device, BULK_EP_IN), data_trasfer_buffer, MAX_PKT_SIZE, &read_count, 5000);
 	if(retval){
@@ -46,8 +50,10 @@ static int32_t usb_write(void){
 	int32_t retval;
 	int32_t wrote_count;
 
-	retval = usb_bulk_msg(device, usb_sndbulkpipe(device, BULK_EP_OUT), data_transfer_buffer)
+	/*Data is put into the data_transfer_buffer*/
+	retval = usb_bulk_msg(device, usb_sndbulkpipe(device, BULK_EP_OUT), data_transfer_buffer,MAX_PKT_SIZE, &wrote_count, 5000)
 	
+	/*Write to file system here*/
 }
 
 /*
